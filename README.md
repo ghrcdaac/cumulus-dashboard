@@ -3,6 +3,14 @@
 [![CircleCI](https://circleci.com/gh/nasa/cumulus-dashboard.svg?style=svg)](https://circleci.com/gh/nasa/cumulus-dashboard)
 
 Code to generate and deploy the dashboard for the Cumulus API.
+## For GHRC team eyes
+```code
+$ cp env.sh.example env.sh
+$ <Fill the redacted values>
+$ source env.sh
+$ nvm use
+# npm run serve-locally
+```
 
 ## Documentation
 
