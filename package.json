@@ -44,7 +44,7 @@
     "bind-port-8000": "ssh ${BASTION_HOST} -o ServerAliveInterval=100 -L localhost:8000:${API_ID}.execute-api.${AWS_REGION}.amazonaws.com:443 -f -N",
     "bind-port-7000": "ssh ${BASTION_HOST} -o ServerAliveInterval=150 -L localhost:7000:${DISTRIBUTION_ID}.execute-api.${AWS_REGION}.amazonaws.com:443 -f -N",
     "bind-ports": "npm run bind-port-8000 && npm run bind-port-7000",
-    "serve-with-apache": "docker run --rm -d --name my-apache-app -p 8080:80 -v \"$PWD/${DIST:-dist}\":/usr/local/apache2/htdocs/ httpd:2.4",
+    "serve-with-apache": "docker run --rm -d --name my-apache-app -p 8080:80 -v $PWD/${DIST:-dist}:/usr/local/apache2/htdocs/ httpd:2.4",
     "serve-locally": "npm install && npm run bind-ports && APIROOT=${CUMULUS_BACKEND} npm run serve",
     "serve-dashboard": "npm run bind-ports && npm run serve-with-apache"
   },

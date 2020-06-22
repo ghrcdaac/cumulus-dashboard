@@ -17,3 +17,4 @@ test/fake-api/db/*.json
 tmp/
 yarn.lock
 env.sh
+sbx_env.sh
