@@ -1,5 +1,6 @@
 'use strict';
 import React from 'react';
+import { Helmet } from 'react-helmet';
 import PropTypes from 'prop-types';
 import { withRouter } from 'react-router-dom';
 import { connect } from 'react-redux';
@@ -50,6 +51,9 @@ class RulesOverview extends React.Component {
     const { count, queriedAt } = list.meta;
     return (
       <div className='page__component'>
+        <Helmet>
+          <title> Rules Overview </title>
+        </Helmet>
         <section className='page__section page__section__controls'>
           <Breadcrumbs config={breadcrumbConfig} />
         </section>
@@ -61,7 +65,7 @@ class RulesOverview extends React.Component {
         </section>
         <section className='page__section'>
           <div className='heading__wrapper--border'>
-            <h2 className='heading--medium heading--shared-content with-description'>All Rules <span className='num--title'>{count ? ` ${tally(count)}` : 0}</span></h2>
+            <h2 className='heading--medium heading--shared-content with-description'>All Rules <span className='num-title'>{count ? ` ${tally(count)}` : 0}</span></h2>
           </div>
 
           <List
@@ -70,7 +74,7 @@ class RulesOverview extends React.Component {
             action={listRules}
             tableColumns={tableColumns}
             query={{}}
-            sortIdx='timestamp'
+            sortId='timestamp'
             bulkActions={this.generateBulkActions()}
             rowId='name'
           >

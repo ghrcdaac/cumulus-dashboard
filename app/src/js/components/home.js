@@ -1,5 +1,6 @@
 'use strict';
 import React from 'react';
+import { Helmet } from 'react-helmet';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { withRouter, Link } from 'react-router-dom';
@@ -55,7 +56,7 @@ class Home extends React.Component {
 
   componentDidMount () {
     const { dispatch } = this.props;
-    this.cancelInterval = interval(this.query, updateInterval, true);
+    this.refreshQuery();
     dispatch(getCumulusInstanceMetadata())
       .then(() => {
         dispatch(getDistApiGatewayMetrics(this.props.cumulusInstance));
@@ -105,6 +106,9 @@ class Home extends React.Component {
     return (
       <section className='page__section'>
         <div className='row'>
+          <Helmet>
+            <title> Cumulus Home  </title>
+          </Helmet>
           <div className='heading__wrapper'>
             <h2 className='heading--medium heading--shared-content--right'>{header}</h2>
           </div>
@@ -205,7 +209,7 @@ class Home extends React.Component {
                 <Link className='link--secondary link--learn-more' to='/granules'>{strings.view_granules_overview}</Link>
               </div>
               <div className="heading__wrapper">
-                <h2 className='heading--medium heading--shared-content--right'>{strings.granules_updated}<span className='num--title'>{numGranules}</span></h2>
+                <h2 className='heading--medium heading--shared-content--right'>{strings.granules_updated}<span className='num-title'>{numGranules}</span></h2>
               </div>
 
               <GranulesProgress granules={granuleStatus} />
@@ -222,7 +226,7 @@ class Home extends React.Component {
                 dispatch={this.props.dispatch}
                 action={listGranules}
                 tableColumns={errorTableColumns}
-                sortIdx='timestamp'
+                sortId='timestamp'
                 query={this.generateQuery()}
               />
             </div>

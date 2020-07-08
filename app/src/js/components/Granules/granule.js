@@ -5,7 +5,6 @@ import PropTypes from 'prop-types';
 import { withRouter, Link } from 'react-router-dom';
 import { connect } from 'react-redux';
 import {
-  interval,
   getGranule,
   reingestGranule,
   removeGranule,
@@ -30,14 +29,12 @@ import Loading from '../LoadingIndicator/loading-indicator';
 import LogViewer from '../Logs/viewer';
 import ErrorReport from '../Errors/report';
 import Metadata from '../Table/Metadata';
-import AsyncCommands from '../DropDown/dropdown-async-command';
-import _config from '../../config';
+import DropdownAsync from '../DropDown/dropdown-async-command';
 import { strings } from '../locale';
 import { workflowOptionNames } from '../../selectors';
 import { simpleDropdownOption } from '../../utils/table-config/granules';
 import Breadcrumbs from '../Breadcrumbs/Breadcrumbs';
-
-const { updateInterval } = _config;
+import isEqual from 'lodash.isequal';
 
 const link = 'Link';
 
@@ -81,7 +78,7 @@ const metaAccessors = [
   {
     label: `${strings.cmr} Link`,
     property: 'cmrLink',
-    accesssor: (d) => d ? <a href={d} target='_blank'>Link</a> : nullValue
+    accessor: (d) => d ? <a href={d} target='_blank'>link</a> : nullValue
   },
   {
     label: 'Execution',
@@ -106,10 +103,9 @@ const metaAccessors = [
 ];
 
 class GranuleOverview extends React.Component {
-  constructor () {
-    super();
-    this.reload = this.reload.bind(this);
-    this.fastReload = this.fastReload.bind(this);
+  constructor (props) {
+    super(props);
+    this.loadGranule = this.loadGranule.bind(this);
     this.navigateBack = this.navigateBack.bind(this);
     this.queryWorkflows = this.queryWorkflows.bind(this);
     this.reingest = this.reingest.bind(this);
@@ -119,35 +115,27 @@ class GranuleOverview extends React.Component {
     this.errors = this.errors.bind(this);
     this.selectWorkflow = this.selectWorkflow.bind(this);
     this.getExecuteOptions = this.getExecuteOptions.bind(this);
-    this.displayName = strings.granule;
-    this.state = {};
+    this.state = {
+      workflow: this.props.workflowOptions[0]
+    };
   }
 
   componentDidMount () {
-    const { granuleId } = this.props.match.params;
-    this.cancelInterval = interval(this.queryWorkflows, updateInterval, true);
-
+    this.queryWorkflows();
     if (this.props.skipReloadOnMount) return;
-
-    const immediate = !this.props.granules.map[granuleId];
-    this.reload(immediate);
+    this.loadGranule();
   }
 
-  componentWillUnmount () {
-    if (this.cancelInterval) { this.cancelInterval(); }
+  componentDidUpdate (prevProps) {
+    if (!isEqual(prevProps.workflowOptions, this.props.workflowOptions)) {
+      this.setState({ workflow: this.props.workflowOptions[0] }); // eslint-disable-line react/no-did-update-set-state
+    }
   }
 
-  reload (immediate, timeout) {
-    timeout = timeout || updateInterval;
-    const granuleId = this.props.match.params.granuleId;
-    const { dispatch } = this.props;
-    if (this.cancelInterval) { this.cancelInterval(); }
-    this.cancelInterval = interval(() => dispatch(getGranule(granuleId)), timeout, immediate);
-  }
-
-  fastReload () {
-    // decrease timeout to better see updates
-    this.reload(true, updateInterval / 2);
+  loadGranule () {
+    const { dispatch, match } = this.props;
+    const { granuleId } = match.params;
+    dispatch(getGranule(granuleId));
   }
 
   navigateBack () {
@@ -225,14 +213,14 @@ class GranuleOverview extends React.Component {
       text: 'Reingest',
       action: this.reingest,
       status: get(this.props.granules.reingested, [granuleId, 'status']),
-      success: this.fastReload,
+      success: this.loadGranule,
       confirmAction: true,
       confirmText: `Reingest ${granuleId}? Note: the granule files will be overwritten.`
     }, {
       text: 'Execute',
       action: this.applyWorkflow,
       status: get(this.props.granules.executed, [granuleId, 'status']),
-      success: this.fastReload,
+      success: this.loadGranule,
       confirmAction: true,
       confirmText: `Execute on ${granuleId}?`,
       confirmOptions: this.getExecuteOptions()
@@ -240,7 +228,7 @@ class GranuleOverview extends React.Component {
       text: strings.remove_from_cmr,
       action: this.remove,
       status: get(this.props.granules.removed, [granuleId, 'status']),
-      success: this.fastReload
+      success: this.loadGranule
     }, {
       text: 'Delete',
       action: this.delete,
@@ -274,12 +262,12 @@ class GranuleOverview extends React.Component {
         </section>
         <section className='page__section page__section__header-wrapper'>
           <h1 className='heading--large heading--shared-content with-description width--three-quarters'>{granuleId}</h1>
-          <AsyncCommands config={dropdownConfig} />
+          <DropdownAsync config={dropdownConfig} />
           {lastUpdated(granule.createdAt, 'Created')}
 
           <dl className='status--process'>
             <dt>Status:</dt>
-            <dd className={granule.status.toLowerCase()}>{displayCase(granule.status)}</dd>
+            <dd className={`status__badge status__badge--${granule.status.toLowerCase()}`}>{displayCase(granule.status)}</dd>
           </dl>
         </section>
 
@@ -327,6 +315,8 @@ GranuleOverview.propTypes = {
 GranuleOverview.defaultProps = {
   skipReloadOnMount: false
 };
+
+GranuleOverview.displayName = strings.granule;
 
 export { GranuleOverview };
 

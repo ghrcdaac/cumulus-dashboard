@@ -19,7 +19,7 @@ import {
 } from '../../utils/format';
 import Loading from '../LoadingIndicator/loading-indicator';
 import LogViewer from '../Logs/viewer';
-import AsyncCommands from '../DropDown/dropdown-async-command';
+import DropdownAsync from '../DropDown/dropdown-async-command';
 import ErrorReport from '../Errors/report';
 import Metadata from '../Table/Metadata';
 import _config from '../../config';
@@ -56,7 +56,6 @@ const metaAccessors = [
 class ProviderOverview extends React.Component {
   constructor () {
     super();
-    this.displayName = 'ProviderElem';
     this.reload = this.reload.bind(this);
     this.navigateBack = this.navigateBack.bind(this);
     this.delete = this.delete.bind(this);
@@ -135,9 +134,9 @@ class ProviderOverview extends React.Component {
       <div className='page__component'>
         <section className='page__section page__section__header-wrapper'>
           <h1 className='heading--large heading--shared-content with-description'>{providerId}</h1>
-          <AsyncCommands config={dropdownConfig} />
+          <DropdownAsync config={dropdownConfig} />
           <Link
-            className='button button--small button--green form-group__element--right'
+            className='button button--small button--green button--edit form-group__element--right'
             to={'/providers/edit/' + providerId}>Edit</Link>
 
           {lastUpdated(provider.queriedAt)}
@@ -171,6 +170,8 @@ ProviderOverview.propTypes = {
   logs: PropTypes.object,
   history: PropTypes.object
 };
+
+ProviderOverview.displayName = 'ProviderElem';
 
 export default withRouter(connect(state => ({
   providers: state.providers,

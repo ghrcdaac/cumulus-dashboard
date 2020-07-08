@@ -1,6 +1,6 @@
 'use strict';
-
 import React from 'react';
+import { Helmet } from 'react-helmet';
 import { connect } from 'react-redux';
 import { withRouter, Link } from 'react-router-dom';
 import { get } from 'object-path';
@@ -76,6 +76,9 @@ class ProvidersOverview extends React.Component {
     const overview = this.renderOverview(providerStatus);
     return (
       <div className='page__component'>
+        <Helmet>
+          <title> Provider </title>
+        </Helmet>
         <section className='page__section page__section__header-wrapper'>
           <h1 className='heading--large heading--shared-content with-description'>Provider Overview</h1>
           {lastUpdated(queriedAt)}
@@ -83,7 +86,7 @@ class ProvidersOverview extends React.Component {
         </section>
         <section className='page__section'>
           <div className='heading__wrapper--border'>
-            <h2 className='heading--medium heading--shared-content'>Ingesting Providers <span className='num--title'>{count ? `${count}` : 0}</span></h2>
+            <h2 className='heading--medium heading--shared-content'>Ingesting Providers <span className='num-title'>{count ? `${count}` : 0}</span></h2>
           </div>
           <div className='filter__button--add'>
             <Link className='button button--green button--add button--small form-group__element' to='/providers/add'>Add Provider</Link>
@@ -96,7 +99,7 @@ class ProvidersOverview extends React.Component {
             query={this.generateQuery()}
             bulkActions={[]}
             rowId='name'
-            sortIdx='timestamp'
+            sortId='timestamp'
           >
             <ListFilters>
               <Dropdown

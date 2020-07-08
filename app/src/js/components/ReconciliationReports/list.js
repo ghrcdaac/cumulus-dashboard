@@ -6,18 +6,22 @@ import { withRouter } from 'react-router-dom';
 import {
   searchReconciliationReports,
   clearReconciliationReportSearch,
+  clearReconciliationReportsFilter,
   listReconciliationReports,
   createReconciliationReport,
   interval,
-  getCount
+  getCount,
+  filterReconciliationReports
 } from '../../actions';
 import { lastUpdated } from '../../utils/format';
+import { reconciliationReportStatus as statusOptions } from '../../utils/status';
+import { reconciliationReportTypes as reportTypeOptions } from '../../utils/report-type';
 import { tableColumns, bulkActions } from '../../utils/table-config/reconciliation-reports';
 import LoadingEllipsis from '../../components/LoadingEllipsis/loading-ellipsis';
+import Dropdown from '../DropDown/dropdown';
 import Search from '../Search/search';
 import List from '../Table/Table';
 import ListFilters from '../ListActions/ListFilters';
-import withQueryParams from 'react-router-query-params';
 import _config from '../../config';
 
 const { updateInterval } = _config;
@@ -63,6 +67,7 @@ class ReconciliationReportList extends React.Component {
     const { reconciliationReports } = this.props;
     const { list } = this.props.reconciliationReports;
     const { queriedAt } = list.meta;
+    const tableColumnsArray = tableColumns({ dispatch: this.props.dispatch });
 
     return (
       <div className='page__component'>
@@ -77,15 +82,39 @@ class ReconciliationReportList extends React.Component {
             list={list}
             dispatch={this.props.dispatch}
             action={listReconciliationReports}
-            tableColumns={tableColumns}
+            tableColumns={tableColumnsArray}
             query={this.generateQuery()}
             bulkActions={this.generateBulkActions()}
-            rowId='reconciliationReportName'
+            rowId='name'
+            sortId='createdAt'
           >
             <ListFilters>
-              <Search dispatch={this.props.dispatch}
+              <Search
+                dispatch={this.props.dispatch}
                 action={searchReconciliationReports}
                 clear={clearReconciliationReportSearch}
+                label="Search"
+                placeholder="Report Name"
+              />
+              <Dropdown
+                options={reportTypeOptions}
+                action={filterReconciliationReports}
+                clear={clearReconciliationReportsFilter}
+                paramKey="type"
+                label="Report Type"
+                inputProps={{
+                  placeholder: 'All',
+                }}
+              />
+              <Dropdown
+                options={statusOptions}
+                action={filterReconciliationReports}
+                clear={clearReconciliationReportsFilter}
+                paramKey="status"
+                label="Status"
+                inputProps={{
+                  placeholder: 'All',
+                }}
               />
             </ListFilters>
             <div className='filter__button--add'>
@@ -101,13 +130,10 @@ class ReconciliationReportList extends React.Component {
 }
 
 ReconciliationReportList.propTypes = {
-  location: PropTypes.object,
   dispatch: PropTypes.func,
-  reconciliationReports: PropTypes.object,
-  params: PropTypes.object,
-  queryParams: PropTypes.object
+  reconciliationReports: PropTypes.object
 };
 
-export default withRouter(withQueryParams()(connect(state => ({
+export default withRouter(connect(state => ({
   reconciliationReports: state.reconciliationReports
-}))(ReconciliationReportList)));
+}))(ReconciliationReportList));

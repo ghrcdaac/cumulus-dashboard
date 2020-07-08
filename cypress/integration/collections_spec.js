@@ -38,7 +38,8 @@ describe('Dashboard Collections Page', () => {
 
     it('should display a link to view collections', () => {
       cy.contains('nav li a', 'Collections').as('collections');
-      cy.get('@collections').should('have.attr', 'href', '/collections');
+      cy.setDatepickerDropdown('Recent');
+      cy.get('@collections').should('have.attr', 'href').and('match', /\/collections\?startDateTime/);
       cy.get('@collections').click();
       cy.wait('@getActiveCollections');
 
@@ -55,7 +56,8 @@ describe('Dashboard Collections Page', () => {
 
     it('should only display collections with active granules when time filter is applied', () => {
       cy.contains('nav li a', 'Collections').as('collections');
-      cy.get('@collections').should('have.attr', 'href', '/collections');
+      cy.setDatepickerDropdown('Recent');
+      cy.get('@collections').should('have.attr', 'href').and('match', /\/collections\?startDateTime/);
       cy.get('@collections').click();
       cy.wait('@getActiveCollections');
 
@@ -107,6 +109,7 @@ describe('Dashboard Collections Page', () => {
       cy.visit('/collections');
       cy.contains('.heading--large', 'Collection Overview');
       cy.clearStartDateTime();
+      cy.wait('@getCollections');
       cy.contains('a', 'Add Collection').click();
 
       // Fill the form with the test collection JSON and submit it
@@ -159,6 +162,10 @@ describe('Dashboard Collections Page', () => {
       // collections with which to populate the dropdown on the collection
       // details page.
       cy.visit('/collections');
+      // TODO [DOP, 2020-05-14] Workaround until CUMULUS-1996 is resolved
+      // Stop timer so that it does not dispatch listCollections and change
+      // the order of items in the list after date is cleared
+      cy.get('.form__element__updateToggle .form__element__clickable').click();
       cy.clearStartDateTime();
       cy.wait('@getCollections');
       cy.get('.table .tbody .tr').should('have.length', 5);
@@ -183,6 +190,8 @@ describe('Dashboard Collections Page', () => {
       const version = '006';
 
       cy.visit(`/collections/collection/${name}/${version}`);
+      cy.wait('@getCollection');
+      cy.wait('@getGranules');
       cy.contains('a', 'Copy').as('copyCollection');
       cy.get('@copyCollection')
         .should('have.attr', 'href')
@@ -192,7 +201,7 @@ describe('Dashboard Collections Page', () => {
       cy.contains('.heading--large', 'Add a collection');
 
       // need to make sure defaultValue has been updated with collection json
-      cy.contains('.ace_variable', 'name');
+      cy.contains('.ace_variable', 'name', { timeout: 10000 });
       cy.getJsonTextareaValue().then((jsonValue) => {
         expect(jsonValue.version).to.equal(version);
       });
@@ -216,6 +225,8 @@ describe('Dashboard Collections Page', () => {
       const version = '006';
 
       cy.visit(`/collections/collection/${name}/${version}`);
+      cy.wait('@getCollection');
+      cy.wait('@getGranules');
       cy.contains('a', 'Edit').as('editCollection');
       cy.get('@editCollection')
         .should('have.attr', 'href')
@@ -227,7 +238,7 @@ describe('Dashboard Collections Page', () => {
       // update collection and submit
       const duplicateHandling = 'version';
       const meta = { metaObj: 'metadata' };
-      cy.contains('.ace_variable', 'name');
+      cy.contains('.ace_variable', 'name', { timeout: 10000 });
       cy.editJsonTextarea({ data: { duplicateHandling, meta }, update: true });
       cy.contains('form button', 'Submit').click();
       cy.contains('.default-modal .edit-collection__title', 'Edit Collection');
@@ -258,7 +269,7 @@ describe('Dashboard Collections Page', () => {
       cy.contains('form button', 'Submit').click();
       cy.contains('.default-modal .edit-collection__title', 'Edit Collection');
       cy.contains('.default-modal .modal-body', `Collection ${name}___${version} has encountered an error.`);
-      cy.contains('.modal-footer button', 'Edit Collection').click();
+      cy.contains('.modal-footer button', 'Continue Editing Collection').click();
       cy.url().should('include', `collections/edit/${name}/${version}`);
 
       // Cancel Request should return to collection page
@@ -269,6 +280,33 @@ describe('Dashboard Collections Page', () => {
       cy.contains('.heading--large', `${name} / ${version}`);
     });
 
+    it('should display an error when attempting to edit a collection name or version', () => {
+      const name = 'MOD09GQ';
+      const version = '006';
+
+      cy.visit(`/collections/collection/${name}/${version}`);
+      cy.wait('@getCollection');
+      cy.contains('a', 'Edit').as('editCollection');
+      cy.get('@editCollection')
+        .should('have.attr', 'href')
+        .and('include', `/collections/edit/${name}/${version}`);
+      cy.get('@editCollection').click();
+
+      cy.contains('.heading--large', `${name}___${version}`);
+
+      // change name and version
+      // Edit Collection should display proper error message
+      const newName = 'TEST';
+      const newVersion = '2';
+      const errorMessage = `Expected collection name and version to be '${name}' and '${version}', respectively, but found '${newName}' and '${newVersion}' in payload`;
+      cy.contains('.ace_variable', 'name', { timeout: 10000 });
+      cy.editJsonTextarea({ data: { name: newName, version: newVersion }, update: true });
+      cy.contains('form button', 'Submit').click();
+      cy.contains('.default-modal .edit-collection__title', 'Edit Collection');
+      cy.contains('.default-modal .modal-body', `Collection ${name}___${version} has encountered an error.`);
+      cy.get('.default-modal .modal-body .error').invoke('text').should('eq', errorMessage);
+    });
+
     it('should delete a collection', () => {
       cy.visit('/');
       const name = 'https_testcollection';
@@ -277,6 +315,8 @@ describe('Dashboard Collections Page', () => {
 
       cy.visit(`/collections/collection/${name}/${version}`);
       cy.clearStartDateTime();
+      cy.wait('@getCollection');
+      cy.wait('@getGranules');
 
       // delete collection
       cy.get('.DeleteCollection > .button').click();
@@ -305,10 +345,12 @@ describe('Dashboard Collections Page', () => {
 
       // Wait for the table to be visible.
       cy.get('.previous');
+      cy.wait('@getCollections');
 
       // This forces an update to the current state and this seems wrong, but
       // the tests will pass.
       cy.get('.form__element__refresh').click();
+      cy.wait('@getCollections');
 
       cy.getFakeApiFixture('collections').its('results')
         .each((collection) => {
@@ -336,6 +378,7 @@ describe('Dashboard Collections Page', () => {
 
       cy.visit(`/collections/collection/${name}/${version}`);
       cy.clearStartDateTime();
+      cy.wait('@getCollection');
 
       // delete collection
       cy.get('.DeleteCollection > .button').click();
@@ -405,6 +448,90 @@ describe('Dashboard Collections Page', () => {
       cy.contains('a', 'Collections').click();
       cy.contains('.heading--xlarge', 'Collections');
       cy.contains('.table .tbody .tr a', name);
+    });
+
+    it('Should fail to reingest granules on a collection detail page', () => {
+      cy.visit('/collections/collection/MOD09GQ/006');
+      const granuleIds = [
+        'MOD09GQ.A0142558.ee5lpE.006.5112577830916',
+        'MOD09GQ.A9344328.K9yI3O.006.4625818663028'
+      ];
+      cy.server();
+      cy.route({
+        method: 'PUT',
+        url: '/granules/*',
+        status: 500,
+        response: { message: 'Oopsie' }
+      });
+      cy.visit('/granules');
+      cy.get(`[data-value="${granuleIds[0]}"] > .td >input[type="checkbox"]`).click();
+      cy.get(`[data-value="${granuleIds[1]}"] > .td >input[type="checkbox"]`).click();
+      cy.get('.list-actions').contains('Reingest').click();
+      cy.get('.button--submit').click();
+      cy.get('.modal-content .modal-body .alert', { timeout: 10000 }).should('contain.text', 'Error');
+      cy.get('.Collapsible__contentInner').should('contain.text', 'Oopsie');
+      cy.get('.button--cancel').click();
+      cy.url().should('match', /\/granules$/);
+      cy.get('.heading--large').should('have.text', 'Granule Overview');
+    });
+
+    it('Should reingest multiple granules and redirect to the running page on a collection\'s granule detail page and close the modal', () => {
+      cy.visit('/collections/collection/MOD09GQ/006/granules');
+      cy.wait('@getGranules');
+      const granuleIds = [
+        'MOD09GQ.A0142558.ee5lpE.006.5112577830916',
+        'MOD09GQ.A9344328.K9yI3O.006.4625818663028'
+      ];
+      cy.server();
+      cy.route({
+        method: 'PUT',
+        url: '/granules/*',
+        status: 200,
+        response: { message: 'ingested' }
+      });
+
+      cy.get(`[data-value="${granuleIds[0]}"] > .td >input[type="checkbox"]`).click();
+      cy.get(`[data-value="${granuleIds[1]}"] > .td >input[type="checkbox"]`).click();
+      cy.get('.list-actions').contains('Reingest').click();
+      cy.get('.button--submit').click();
+      cy.get('.modal-content .modal-body .alert', { timeout: 10000 }).should('contain.text', 'Success');
+      cy.get('.modal-content').within(() => {
+        cy.get('.button__goto').click();
+      });
+      cy.url().should('include', '/collections/collection/MOD09GQ/006/granules/processing');
+      cy.get('.heading--medium').should('have.text', 'Running Granules 2');
+
+      // Ensure we have closed the modal.
+      cy.get('.modal-content').should('not.be.visible');
+    });
+
+    it('Should display Granule Metrics that match the datepicker selection', () => {
+      cy.visit('/collections/collection/MOD09GQ/006');
+
+      cy.get('[data-cy=endDateTime]').within(() => {
+        cy.get('input[name=month]').click().type(3);
+        cy.get('input[name=day]').click().type(17);
+        cy.get('input[name=year]').click().type(2009);
+        cy.get('input[name=hour12]').click().type(3);
+        cy.get('input[name=minute]').click().type(37);
+        cy.get('input[name=minute]').should('have.value', '37');
+        cy.get('select[name=amPm]').select('PM');
+      });
+      cy.get('[data-cy=overview-num]').within(() => {
+        cy.get('li')
+          .first().should('contain', '--').and('contain', 'Completed')
+          .next().should('contain', '--').and('contain', 'Failed')
+          .next().should('contain', '--').and('contain', 'Running');
+      });
+
+      cy.get('[data-cy=endDateTime] > .react-datetime-picker > .react-datetime-picker__wrapper > .react-datetime-picker__clear-button > .react-datetime-picker__clear-button__icon').click();
+
+      cy.get('[data-cy=overview-num]').within(() => {
+        cy.get('li')
+          .first().should('contain', 7).and('contain', 'Completed')
+          .next().should('contain', 2).and('contain', 'Failed')
+          .next().should('contain', 2).and('contain', 'Running');
+      });
     });
   });
 });

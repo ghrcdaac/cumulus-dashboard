@@ -16,18 +16,18 @@ import { strings } from '../../components/locale';
 export const tableColumns = [
   {
     Header: 'Name',
-    accessor: row => <Link to={`/rules/rule/${row.name}`}>{row.name}</Link>,
-    id: 'name'
+    accessor: 'name',
+    Cell: ({ cell: { value } }) => <Link to={`/rules/rule/${value}`}>{value}</Link> // eslint-disable-line react/prop-types
   },
   {
     Header: 'Provider',
-    accessor: row => providerLink(row.provider),
-    id: 'provider'
+    accessor: 'provider',
+    Cell: ({ cell: { value } }) => providerLink(value)
   },
   {
     Header: strings.collection_id,
-    accessor: row => collectionLink(getCollectionId(row.collection)),
-    id: 'collectionId',
+    accessor: row => getCollectionId(row.collection),
+    Cell: ({ row }) => collectionLink(getCollectionId(row.original.collection)), // eslint-disable-line react/prop-types
     disableSortBy: true
   },
   {

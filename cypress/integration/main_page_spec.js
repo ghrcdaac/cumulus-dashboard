@@ -54,7 +54,6 @@ describe('Dashboard Home Page', () => {
     beforeEach(() => {
       cy.login();
       cy.server();
-      cy.route('POST', 'http://example.com/_search/', 'fixture:elasticsearch.json');
       cy.visit('/');
     });
 
@@ -77,8 +76,7 @@ describe('Dashboard Home Page', () => {
       cy.clock(now);
       cy.get('main[class=main] section').within(() => {
         cy.get('h3').should('have.text', 'Date and Time Range');
-        cy.get('[data-cy=datetime-dropdown]').as('dateRange');
-        cy.get('@dateRange').select('1 week');
+        cy.setDatepickerDropdown('1 week');
 
         cy.get('[data-cy=endDateTime]').within(() => {
           cy.get('.react-datetime-picker__inputGroup__year').should('have.value', '2009');
@@ -116,8 +114,7 @@ describe('Dashboard Home Page', () => {
       cy.clock(now);
       cy.get('main[class=main] section').within(() => {
         cy.get('h3').should('have.text', 'Date and Time Range');
-        cy.get('[data-cy=datetime-dropdown]').as('dateRange');
-        cy.get('@dateRange').select('1 hour');
+        cy.setDatepickerDropdown('1 hour');
 
         cy.url().should('include', 'startDateTime=201503171500');
         cy.url().should('include', 'endDateTime=201503171600');
@@ -177,13 +174,11 @@ describe('Dashboard Home Page', () => {
       cy.get('#Collections').contains('1');
       cy.get('#Granules').contains('11');
       cy.get('#Executions').contains('6');
+      cy.get('[id="Ingest Rules"]').contains('1');
 
       // Test there are values in Granule Error list
       cy.get('[data-value="0"]').contains('FileNotFound');
       cy.get('[data-value="1"]').contains('FileNotFound');
-
-      // This selector fails cy.get('#Ingest Rules').contains('1');
-      cy.get('.overview-num__wrapper-home > ul > :nth-child(5)').contains('1');
 
       cy.get('[data-cy=startDateTime]').within(() => {
         cy.get('input[name=month]').click().type(1);
@@ -217,6 +212,8 @@ describe('Dashboard Home Page', () => {
       // Cypress only allows one stub per url. We make multiple POST requests to the same
       // elasticsearch endpoint. The fixture here returns a combined response of all the
       // responses for one url, effectively stubbing our elasticsearch searches.
+      cy.route('POST', 'http://example.com/_search/', 'fixture:elasticsearch.json');
+
       cy.get('.overview-num__wrapper-home > ul#distributionErrors > :nth-child(5)').contains('0');
       cy.get('.overview-num__wrapper-home > ul#distributionErrors > :nth-child(4)').contains('2');
       cy.get('.overview-num__wrapper-home > ul#distributionErrors > :nth-child(3)').contains('4');
@@ -282,6 +279,69 @@ describe('Dashboard Home Page', () => {
       cy.url().should('include', '/auth');
 
       shouldHaveDeletedToken();
+    });
+
+    it('Does not add any time and date options to the URL.', () => {
+      const now = Date.UTC(2009, 0, 5, 13, 35, 3);
+      cy.clock(now);
+
+      cy.visit('/');
+      cy.url().should('not.include', 'startDateTime=20090104133500');
+    });
+
+    it('should update the Datepicker with the params in the URL', () => {
+      cy.visit('/granules/?startDateTime=20081229133500&endDateTime=20090105133500');
+
+      cy.get('[data-cy=endDateTime]').within(() => {
+        cy.get('.react-datetime-picker__inputGroup__year').should('have.value', '2009');
+        cy.get('.react-datetime-picker__inputGroup__month').should('have.value', '1');
+        cy.get('.react-datetime-picker__inputGroup__day').should('have.value', '5');
+        cy.get('.react-datetime-picker__inputGroup__hour').should('have.value', '1');
+        cy.get('.react-datetime-picker__inputGroup__minute').should('have.value', '35');
+      });
+
+      cy.get('[data-cy=startDateTime]').within(() => {
+        cy.get('.react-datetime-picker__inputGroup__year').should('have.value', '2008');
+        cy.get('.react-datetime-picker__inputGroup__month').should('have.value', '12');
+        cy.get('.react-datetime-picker__inputGroup__day').should('have.value', '29');
+        cy.get('.react-datetime-picker__inputGroup__hour').should('have.value', '1');
+        cy.get('.react-datetime-picker__inputGroup__minute').should('have.value', '35');
+      });
+    });
+
+    it('should not display the Distribution stats when no data is provided', () => {
+      cy.get('ul#distributionErrors').should('not.exist');
+      cy.get('ul#distributionSuccesses').should('not.exist');
+    });
+
+    describe('The Timer', () => {
+      beforeEach(() => {
+        cy.visit('/');
+      });
+
+      it('begins in the off state', () => {
+        cy.get('[data-cy=toggleTimer]').contains('Start');
+        cy.get('[data-cy=startStopLabel]').contains('Update');
+      });
+      it('retains its state during navigation.', () => {
+        cy.get('[data-cy=toggleTimer]').contains('Start');
+        cy.get('[data-cy=toggleTimer]').click();
+        cy.get('[data-cy=toggleTimer]').contains('Stop');
+        cy.get('[data-cy=startStopLabel]').contains('Next update in:');
+
+        cy.get('nav').contains('Granules').click();
+
+        cy.get('[data-cy=toggleTimer]').contains('Stop');
+        cy.get('[data-cy=startStopLabel]').contains('Next update in:');
+
+        cy.get('[data-cy=toggleTimer]').click();
+        cy.get('[data-cy=startStopLabel]').contains('Update');
+        cy.get('[data-cy=toggleTimer]').contains('Start');
+
+        cy.get('.logo > a').click();
+        cy.get('[data-cy=startStopLabel]').contains('Update');
+        cy.get('[data-cy=toggleTimer]').contains('Start');
+      });
     });
   });
 });

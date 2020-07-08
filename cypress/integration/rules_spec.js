@@ -14,11 +14,11 @@ describe('Rules page', () => {
 
     before(() => {
       cy.visit('/');
+      cy.task('resetState');
     });
 
     beforeEach(() => {
       cy.login();
-      cy.task('resetState');
     });
 
     it('should display a link to view rules', () => {
@@ -164,6 +164,7 @@ describe('Rules page', () => {
       cy.contains('a', 'Back to Rules').click();
       cy.contains('.table .tbody .tr a', ruleName)
         .should('have.attr', 'href', `/rules/rule/${ruleName}`);
+      cy.task('resetState');
     });
 
     it('copying a rule should add it to the list', () => {
@@ -202,6 +203,7 @@ describe('Rules page', () => {
       cy.contains('a', 'Back to Rules').click();
       cy.contains('.table .tbody .tr a', newName)
         .should('have.attr', 'href', `/rules/rule/${newName}`);
+      cy.task('resetState');
     });
 
     it('editing a rule and returning to the rules page should show the new changes', () => {
@@ -241,6 +243,7 @@ describe('Rules page', () => {
 
       // Test error flow
       const errorRuleType = 'test';
+      const errorMessage = 'The record has validation errors: [{"keyword":"enum","dataPath":".rule.type","schemaPath":"#/properties/rule/properties/type/enum","params":{"allowedValues":["onetime","scheduled","sns","kinesis","sqs"]},"message":"should be equal to one of the allowed values"}]';
       cy.contains('.ace_variable', 'name');
       cy.editJsonTextarea({ data: { rule: { type: errorRuleType } }, update: true });
 
@@ -248,8 +251,12 @@ describe('Rules page', () => {
       cy.contains('form button', 'Submit').click();
       cy.contains('.default-modal .edit-rule__title', 'Edit Rule');
       cy.contains('.default-modal .modal-body', `Rule ${testRuleName} has encountered an error.`);
-      cy.contains('.modal-footer button', 'Edit Rule').click();
+      cy.contains('.default-modal .modal-body .error', errorMessage);
+      cy.contains('.modal-footer button', 'Continue Editing Rule').click();
       cy.url().should('include', `rules/edit/${testRuleName}`);
+
+      // There should be an error report
+      cy.contains('.error__report', errorMessage);
 
       // Cancel Request should return to rule page
       cy.contains('form button', 'Submit').click();
@@ -257,6 +264,7 @@ describe('Rules page', () => {
       // cy.wait('@getCollection');
       cy.contains('.heading--xlarge', 'Rules');
       cy.contains('.heading--large', `${testRuleName}`);
+      cy.task('resetState');
     });
 
     it('deleting a rule should remove it from the list', () => {
@@ -274,6 +282,33 @@ describe('Rules page', () => {
         .click();
       cy.contains('.table .tr a', testRuleName)
         .should('not.exist');
+      cy.task('resetState');
+    });
+
+    it('Should trigger workflow when a rule is rerun', () => {
+      cy.server();
+      cy.route('PUT', '/rules/MOD09GK_TEST_kinesisRule', 'fixtures:rule-success.json').as('putRule');
+      cy.visit('/rules/rule/MOD09GK_TEST_kinesisRule');
+      cy.get('.dropdown__options__btn').click();
+      cy.get('.dropdown__menu').contains('Rerun').click();
+      cy.get('.button--submit').click();
+      cy.get('.modal-content').should('not.be', 'visible');
+    });
+
+    it('Should display error when a rule fails to rerun.', () => {
+      cy.server();
+      cy.route({
+        method: 'PUT',
+        url: '/rules/MOD09GK_TEST_kinesisRule',
+        status: 503,
+        response: 'fixtures:rule-error.json'
+      }).as('putRule');
+      cy.visit('/rules/rule/MOD09GK_TEST_kinesisRule');
+      cy.get('.dropdown__options__btn').click();
+      cy.get('.dropdown__menu').contains('Rerun').click();
+      cy.get('.button--submit').click();
+      cy.get('.modal-content').should('not.be', 'visible');
+      cy.contains('.error__report', 'Error');
     });
   });
 });

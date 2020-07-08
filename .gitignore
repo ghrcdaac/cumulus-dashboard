@@ -18,3 +18,5 @@ tmp/
 yarn.lock
 env.sh
 sbx_env.sh
+*_env.sh
+*_dist

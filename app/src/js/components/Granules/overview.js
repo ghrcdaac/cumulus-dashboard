@@ -1,11 +1,10 @@
 'use strict';
 import React from 'react';
+import { Helmet } from 'react-helmet';
 import PropTypes from 'prop-types';
 import { withRouter } from 'react-router-dom';
 import { connect } from 'react-redux';
 import {
-  interval,
-  getCount,
   searchGranules,
   clearGranulesSearch,
   filterGranules,
@@ -30,15 +29,14 @@ import Dropdown from '../DropDown/dropdown';
 import Search from '../Search/search';
 import Overview from '../Overview/overview';
 import statusOptions from '../../utils/status';
-import _config from '../../config';
 import { strings } from '../locale';
 import { workflowOptionNames } from '../../selectors';
 import { window } from '../../utils/browser';
 import ListFilters from '../ListActions/ListFilters';
 import Breadcrumbs from '../Breadcrumbs/Breadcrumbs';
 import pageSizeOptions from '../../utils/page-size';
-
-const { updateInterval } = _config;
+import { downloadFile } from '../../utils/download-file';
+import isEqual from 'lodash.isequal';
 
 const breadcrumbConfig = [
   {
@@ -52,8 +50,8 @@ const breadcrumbConfig = [
 ];
 
 class GranulesOverview extends React.Component {
-  constructor () {
-    super();
+  constructor (props) {
+    super(props);
     this.generateQuery = this.generateQuery.bind(this);
     this.generateBulkActions = this.generateBulkActions.bind(this);
     this.queryMeta = this.queryMeta.bind(this);
@@ -61,25 +59,25 @@ class GranulesOverview extends React.Component {
     this.applyWorkflow = this.applyWorkflow.bind(this);
     this.getExecuteOptions = this.getExecuteOptions.bind(this);
     this.applyRecoveryWorkflow = this.applyRecoveryWorkflow.bind(this);
-    this.state = {};
+    this.downloadGranuleCSV = this.downloadGranuleCSV.bind(this);
+    this.state = {
+      workflow: this.props.workflowOptions[0]
+    };
   }
 
   componentDidMount () {
-    this.cancelInterval = interval(this.queryMeta, updateInterval, true);
+    this.queryMeta();
   }
 
-  componentWillUnmount () {
-    if (this.cancelInterval) { this.cancelInterval(); }
+  componentDidUpdate (prevProps) {
+    if (!isEqual(prevProps.workflowOptions, this.props.workflowOptions)) {
+      this.setState({ workflow: this.props.workflowOptions[0] }); // eslint-disable-line react/no-did-update-set-state
+    }
   }
 
   queryMeta () {
     const { dispatch } = this.props;
     dispatch(listWorkflows());
-    dispatch(getCount({
-      type: 'granules',
-      field: 'status'
-    }));
-    dispatch(getGranuleCSV());
   }
 
   generateQuery () {
@@ -128,16 +126,28 @@ class GranulesOverview extends React.Component {
     ];
   }
 
+  downloadGranuleCSV () {
+    const { dispatch } = this.props;
+    dispatch(getGranuleCSV()).then(() => {
+      const { granuleCSV } = this.props;
+      const { data } = granuleCSV;
+      const csvData = new Blob([data], { type: 'text/csv' });
+      const url = window.URL.createObjectURL(csvData);
+      downloadFile(url, 'granules.csv');
+    });
+  }
+
   render () {
-    const { stats, granules, granuleCSV, dispatch } = this.props;
+    const { stats, granules, dispatch } = this.props;
     const { list, dropdowns } = granules;
     const { count, queriedAt } = list.meta;
-    const { data } = granuleCSV;
-    const csvData = data ? new Blob([data], { type: 'text/csv' }) : null;
     const statsCount = get(stats, 'count.data.granules.count', []);
     const overviewItems = statsCount.map(d => [tally(d.count), displayCase(d.key)]);
     return (
       <div className='page__component'>
+        <Helmet>
+          <title> Granules Overview </title>
+        </Helmet>
         <section className='page__section page__section__controls'>
           <Breadcrumbs config={breadcrumbConfig} />
         </section>
@@ -150,13 +160,11 @@ class GranulesOverview extends React.Component {
         </section>
         <section className='page__section'>
           <div className='heading__wrapper--border'>
-            <h2 className='heading--medium heading--shared-content with-description'>{strings.granules} <span className='num--title'>{count ? ` ${tally(count)}` : 0}</span></h2>
-            {csvData &&
-              <a className='csv__download button button--small button--download button--green form-group__element--right'
-                id='download_link'
-                download='granules.csv'
-                href={window.URL.createObjectURL(csvData)}
-              >Download Granule List</a>}
+            <h2 className='heading--medium heading--shared-content with-description'>{strings.granules} <span className='num-title'>{count ? ` ${tally(count)}` : 0}</span></h2>
+            <a className='csv__download button button--small button--download button--green form-group__element--right'
+              id='download_link'
+              onClick={this.downloadGranuleCSV}
+            >Download Granule List</a>
           </div>
           <List
             list={list}
@@ -165,7 +173,7 @@ class GranulesOverview extends React.Component {
             query={this.generateQuery()}
             bulkActions={this.generateBulkActions()}
             rowId='granuleId'
-            sortIdx='timestamp'
+            sortId='timestamp'
           >
             <ListFilters>
               <Dropdown
@@ -219,7 +227,6 @@ GranulesOverview.propTypes = {
   stats: PropTypes.object,
   dispatch: PropTypes.func,
   workflowOptions: PropTypes.array,
-  location: PropTypes.object,
   config: PropTypes.object,
   granuleCSV: PropTypes.object
 };

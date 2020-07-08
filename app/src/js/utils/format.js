@@ -13,6 +13,11 @@ export const fullDate = function (datestring) {
   return moment(datestring).format('kk:mm:ss MM/DD/YY');
 };
 
+export const dateOnly = function (datestring) {
+  if (!datestring) { return nullValue; }
+  return moment(datestring).format('MM/DD/YYYY');
+};
+
 export const parseJson = function (jsonString) {
   const parsed = JSON.parse(jsonString);
   return JSON.stringify(parsed, null, 2);
@@ -212,7 +217,7 @@ export const buildRedirectUrl = function ({ origin, pathname, hash }) {
     // const hashPrefix = hash.substr(0, hash.indexOf('/') + 1);
     const baseHash = hash.substr(hash.indexOf('/') + 1);
     const parsedUrl = new URL(baseHash, origin);
-    // Remove any ?token query parameter to avoid poluting the login link
+    // Remove any ?token query parameter to avoid polluting the login link
     parsedUrl.searchParams.delete('token');
     return encodeURIComponent(parsedUrl.href);
   }

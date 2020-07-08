@@ -69,9 +69,9 @@ class ExecutionOverview extends React.Component {
     }));
   }
 
-  searchOperationId (list, prefix) {
+  searchOperationId (list, infix) {
     return list.filter((item) => {
-      if (item.asyncOperationId && item.asyncOperationId.includes(prefix)) return item;
+      if (item.asyncOperationId && item.asyncOperationId.includes(infix)) return item;
     });
   }
 
@@ -84,8 +84,8 @@ class ExecutionOverview extends React.Component {
     const { stats, executions } = this.props;
     const { list } = executions;
     const { count, queriedAt } = list.meta;
-    if (list.prefix && list.prefix.value) {
-      list.data = this.searchOperationId(list.data, list.prefix.value);
+    if (list.infix && list.infix.value) {
+      list.data = this.searchOperationId(list.data, list.infix.value);
     }
     return (
       <div className='page__component'>
@@ -98,7 +98,7 @@ class ExecutionOverview extends React.Component {
         </section>
         <section className='page__section'>
           <div className='heading__wrapper--border'>
-            <h2 className='heading--medium heading--shared-content with-description'>All Executions <span className='num--title'>{count ? ` ${tally(count)}` : 0}</span></h2>
+            <h2 className='heading--medium heading--shared-content with-description'>All Executions <span className='num-title'>{count ? ` ${tally(count)}` : 0}</span></h2>
           </div>
           <List
             list={list}
@@ -107,7 +107,7 @@ class ExecutionOverview extends React.Component {
             tableColumns={tableColumns}
             query={{}}
             rowId='name'
-            sortIdx='createdAt'
+            sortId='createdAt'
           >
             <ListFilters>
               <Dropdown

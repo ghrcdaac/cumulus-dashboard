@@ -9,50 +9,153 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Added
 
-- **CUMULUS-1822**
-  - Added dynamic form validation as user types
+- **CUMULUS-1904**
+  - Adds a TableFilters component for dynamically showing/hiding table columns
+
+- **CUMULUS-1906**
+  - Adds a download button dropdown to reconciliation report inventory view.
+    Option to download full report as json or indivdual tables as csv files.
+
+- **CUMULUS-1914**
+  - Adds a legend component for reconciliation reports
+
+- **CUMULUS-1917**
+  - Adds a download button to reconciliation report list page
+
+- **CUMULUS-1918**
+  - Adds delete report button to the Reconciliation Reports page
+
+- **CUMULUS-1977**
+  - Added BulkGranuleModal component for creating modals to submit bulk granule requests
+
+### Changed
+
+- **CUMULUS-1815**
+  - Refactor some PDR components. No user facing changes.
+
+- **CUMULUS-1905**
+  - Updates Inventory Report view to clarify Cumulus's internal consistency differences and Cumulus's differences with CMR.
+
+- **CUMULUS-1977**
+  - Updated BulkGranule component to display a modal that allows you to choose
+  the type of bulk request you want to submit: bulk granule operations or bulk
+  granule delete.
+
+- **CUMULUS-1994**
+  - No default datetime filters are applied when the application is loaded.
+  - Upgrade Cypress to latest version (4.7.0)
+
+- **CUMULUS-2019**
+  - Support partial search
+
+### Fixed
+
+- **CUMULUS-1815**
+  - Fix timer bug in PDR Tables. This was causing an issue where a table that
+    was supposed to be showing a subset of PDRs was showing all PDRS
+
+- **CUMULUS-1842**
+  - Fix dashboard table sort issue
+
+- **CUMULUS-1872**
+  - Fix/remove unecessary timers on granules page
+
+## [v1.9.0]
+
+### BREAKING CHANGES
+
+- This dashboard version requires Cumulus API version >= v1.23.0
+
+### Changed
+
+- **CUMULUS-1888**
+  - On the Granules page, CSV data was being refreshed in the background alog with the rest
+    of the data based on the timer. This could take a long time, depending on the number of granules.
+    This has been changed so that the data is only fetched when the user clicks the "Download CSV" button.
+
+- **CUMULUS-1913**
+  - Add datepicker to reconcilation-reports page
+
+- **CUMULUS-1915**
+  - Add filters for `Report Type` and `Status` to reconcilation-reports page
+
+- **CUMULUS-1916**
+  - reconcilation-reports page now requires Cumulus API version >= v1.23.0
+
+## [v1.8.1]
+
+### Changed
+
+- **CUMULUS-1816**
+  - Change Datepicker behavior on login. The default to "Recent" start/end dates
+    now only occurs on first login on the hompage.
+  - URL is updated on login to reflect Datepicker params
+
+- **CUMULUS-1903**
+  - Replace individual tables in reconciliation report with tabs that change which table is displayed on click
+
+- **CUMULUS-1920**
+  - Add additional columns to reconciliation report list
+
+- **CUMULUS-1920**
+  - Updated styles for granule reingest modal
+
+- **CUMULUS-1948**
+  - Add provider to Granules tables
+
+### Fixed
+
+- **CUMULUS-1881**
+  - Fix Elasticsearch query bug for Gateway Access Metrics
+
+- **CUMULUS-1984**
+  - Fix bug where Distribution metrics were showing on the homepage even when
+    Elasaticsearch/Kibana not set up
+
+- **CUMULUS-1988**
+  - Fix bugs in reducer-creators
+
+
+## [v1.8.0]
+
+### Added
+
+- **CUMULUS-1515**
+  - filter capability to workflow overview page.
+
+- **CUMULUS-1526**
+  - Add a copy rule button
 
 - **CUMULUS-1538**
   - Add ability to expand size of visual on execution details page
 
-- **CUMULUS-1515**
-  - filter capability to workflow overview page.
+- **CUMULUS-1646**
+  - Add 'Results Per Page' dropdown for tables that use pagination
+
+- **CUMULUS-1677**
+  - Updates the user experience when re-ingesting granules. Adds Modal flow for better understanding.
 
 - **CUMULUS-1798**
   - Add a refresh button
   - Add individual cancel buttons for date time range inputs
 
-- **CUMULUS-1526**
-  - Add a copy rule button
-
-- **CUMULUS-1646**
-  - Add 'Results Per Page' dropdown for tables that use pagination
+- **CUMULUS-1822**
+  - Added dynamic form validation as user types
 
 ### Changed
-
-- **CUMULUS-1538**
-  - Update executions details page styles 
 
 - **CUMULUS-1460**
   - Update dashboard headers overall
   - Move remaining "add" buttons to body content
 
-- **CUMULUS-1537**
-  - Update execution details page format
-  - Move execution input and output json to modal
-
-- **CUMULUS-1798**
-  - Change the 12HR/24HR Format selector from radio to dropdown
-  - Hide clock component in react-datetime-picker
-
-- **CUMULUS-1790**
-  - Changes default values and visuals for home page's datepicker. When the page loads, it defauls to display "Recent" data, which is the previous 24 hours with no end time.
-
-- **CUMULUS-1787**
-  - Changes `listCollections` action to hit `/collections/active` endpoint when timefilters are present
-
 - **CUMULUS-1467**
   - Change the metrics section on the home page to update based on datepicker time period.
+
+- **CUMULUS-1509**
+  - Update styles on grnaules page
+
+- **CUMULUS-1525**
+  - Style changes for rules overview page
 
 - **CUMULUS-1527**
   - Style changes for individual rule page
@@ -62,20 +165,35 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
     Workflow, Provider, and Collection inputs are now dropdowns populated with
     currently available items.
 
-- **CUMULUS-1509**
-  - Update styles on grnaules page
+- **CUMULUS-1537**
+  - Update execution details page format
+  - Move execution input and output json to modal
 
-- **CUMULUS-1525**
-  - Style changes for rules overview page
+- **CUMULUS-1538**
+  - Update executions details page styles
+
+- **CUMULUS-1787**
+  - Changes `listCollections` action to hit `/collections/active` endpoint when timefilters are present (requires Cumulus API v1.22.1)
+
+- **CUMULUS-1790**
+  - Changes default values and visuals for home page's datepicker. When the page loads, it defauls to display "Recent" data, which is the previous 24 hours with no end time.
+
+- **CUMULUS-1798**
+  - Change the 12HR/24HR Format selector from radio to dropdown
+  - Hide clock component in react-datetime-picker
+
+- **CUMULUS-1810**
+  - Unified the coding pattern used for creating Redux reducers to avoid
+    unnecessary object creation and reduce unnecessary UI component refreshes
 
 ### Fixed
-
-- **CUMULUS-1822**
-  - Fixed no user feedback/errors when submitting a blank form
 
 - **CUMULUS-1813**
   - Fixed CSS for graph on Execution status page
   - Removed Datepicker from Execution status page
+
+- **CUMULUS-1822**
+  - Fixed no user feedback/errors when submitting a blank form
 
 ## [v1.7.2] - 2020-03-16
 
@@ -347,7 +465,10 @@ Fix for serving the dashboard through the Cumulus API.
 
 - Versioning and changelog [CUMULUS-197] by @kkelly51
 
-[Unreleased]: https://github.com/nasa/cumulus-dashboard/compare/v1.7.2...HEAD
+[Unreleased]: https://github.com/nasa/cumulus-dashboard/compare/v1.9.0...HEAD
+[v1.9.0]: https://github.com/nasa/cumulus-dashboard/compare/v1.8.1...v1.9.0
+[v1.8.1]: https://github.com/nasa/cumulus-dashboard/compare/v1.8.0...v1.8.1
+[v1.8.0]: https://github.com/nasa/cumulus-dashboard/compare/v1.7.2...v1.8.0
 [v1.7.2]: https://github.com/nasa/cumulus-dashboard/compare/v1.7.1...v1.7.2
 [v1.7.1]: https://github.com/nasa/cumulus-dashboard/compare/v1.7.0...v1.7.1
 [v1.7.0]: https://github.com/nasa/cumulus-dashboard/compare/v1.6.1...v1.7.0

@@ -1,6 +1,7 @@
 'use strict';
 import React from 'react';
 import PropTypes from 'prop-types';
+import { Helmet } from 'react-helmet';
 import { connect } from 'react-redux';
 import { withRouter } from 'react-router-dom';
 import cloneDeep from 'lodash.clonedeep';
@@ -80,9 +81,9 @@ class OperationOverview extends React.Component {
     }));
   }
 
-  searchOperations (list, prefix) {
+  searchOperations (list, infix) {
     return list.filter((item) => {
-      if (item.id.includes(prefix)) return item;
+      if (item.id.includes(infix)) return item;
     });
   }
 
@@ -92,16 +93,19 @@ class OperationOverview extends React.Component {
     const { count } = list.meta;
     const mutableList = cloneDeep(list);
     //  This data munging should probably be handled in the reducer, but this is a workaround.
-    if (mutableList.internal.prefix) {
-      if (mutableList.internal.prefix.queryValue) {
-        mutableList.data = this.searchOperations(mutableList.data, mutableList.internal.prefix.queryValue);
-      } else if (typeof mutableList.internal.prefix === 'string') {
-        mutableList.data = this.searchOperations(mutableList.data, mutableList.internal.prefix);
+    if (mutableList.internal.infix) {
+      if (mutableList.internal.infix.queryValue) {
+        mutableList.data = this.searchOperations(mutableList.data, mutableList.internal.infix.queryValue);
+      } else if (typeof mutableList.internal.infix === 'string') {
+        mutableList.data = this.searchOperations(mutableList.data, mutableList.internal.infix);
       }
     }
 
     return (
       <div className='page__component'>
+        <Helmet>
+          <title> Operations Overview </title>
+        </Helmet>
         <section className='page__section page__section__header-wrapper'>
           <div className='page__section__header'>
             <h1 className='heading--large heading--shared-content with-description'>Operations Overview</h1>
@@ -109,7 +113,7 @@ class OperationOverview extends React.Component {
         </section>
         <section className='page__section'>
           <div className='heading__wrapper--border'>
-            <h2 className='heading--medium heading--shared-content with-description'>All Operations <span className='num--title'>{tally(count)}</span></h2>
+            <h2 className='heading--medium heading--shared-content with-description'>All Operations <span className='num-title'>{tally(count)}</span></h2>
           </div>
           <List
             list={mutableList}
@@ -118,7 +122,7 @@ class OperationOverview extends React.Component {
             tableColumns={tableColumns}
             query={this.generateQuery()}
             rowId='id'
-            sortIdx='createdAt'
+            sortId='createdAt'
           >
             <ListFilters>
 

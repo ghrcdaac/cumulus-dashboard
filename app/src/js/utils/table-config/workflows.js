@@ -22,13 +22,13 @@ export const buildLink = (r) => {
 export const tableColumns = [
   {
     Header: 'Name',
-    accessor: (row) => <Link to={`/workflows/workflow/${row.name}`}>{row.name}</Link>,
-    id: 'name'
+    accessor: 'name',
+    Cell: ({ cell: { value } }) => <Link to={`/workflows/workflow/${value}`}>{value}</Link> // eslint-disable-line react/prop-types
   },
   {
     Header: 'AWS Step Function',
-    accessor: buildLink,
-    id: 'template'
+    accessor: row => (row.definition && row.definition.Comment) || 'AWS Stepfunction',
+    Cell: ({ row }) => buildLink(row.original),
   },
   {
     Header: 'Steps',

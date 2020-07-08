@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
+import { Helmet } from 'react-helmet';
 import { get } from 'object-path';
 import { connect } from 'react-redux';
 import { withRouter, Redirect, Route, Switch } from 'react-router-dom';
@@ -10,13 +11,7 @@ import AllGranules from './list';
 import DatePickerHeader from '../DatePickerHeader/DatePickerHeader';
 import GranuleOverview from './granule';
 import GranulesOverview from './overview';
-import isEqual from 'lodash.isequal';
-
-const withQueryWrapper = (Component, onQueryChange) => (props) => {
-  return (
-    <Component onQueryChange={onQueryChange} {...props} />
-  );
-};
+import { withQueryWrapper } from '../QueryWrapper/query-wrapper';
 
 const Granules = ({
   dispatch,
@@ -26,25 +21,25 @@ const Granules = ({
 }) => {
   const { pathname } = location;
   const count = get(stats, 'count.data.granules.count');
-  const AllGranulesWithWrapper = withQueryWrapper(AllGranules, onQueryChange);
   const [queryOptions, setQueryOptions] = useState({});
+  const AllGranulesWithWrapper = withQueryWrapper(AllGranules, queryOptions, setQueryOptions);
 
   function query () {
+    dispatch(listGranules(queryOptions));
+  }
+
+  useEffect(() => {
     dispatch(getCount({
       type: 'granules',
       field: 'status'
     }));
-    dispatch(listGranules(queryOptions));
-  }
-
-  function onQueryChange (newQueryOptions) {
-    if (!isEqual(newQueryOptions, queryOptions)) {
-      setQueryOptions(newQueryOptions);
-    }
-  }
+  }, [dispatch]);
 
   return (
     <div className='page__granules'>
+      <Helmet>
+        <title> Granules </title>
+      </Helmet>
       <DatePickerHeader onChange={query} heading={strings.granules}/>
       <div className='page__content'>
         <div className='wrapper__sidebar'>

@@ -19,7 +19,7 @@ const IN_PROGRESS = 'Processing...';
  * It returns a modalOptions object which is passed as props to <DefaultModal />
  * Without this prop, by default, an empty modal will open with a progress bar running as the batch commands execute.
  * When using this function, one conditionally display content based on whether it should be displayed after confirm is clicked 'isOnModalConfirm: true',
- * after the action has completed 'isOnModalComplete: true', or neither (e.g. after the inital button that triggered the modal is clicked).
+ * after the action has completed 'isOnModalComplete: true', or neither (e.g. after the initial button that triggered the modal is clicked).
  * All those scenarios can display different content for the modal based on logic setup within getModalOptions.
  */
 
@@ -43,6 +43,11 @@ export class BatchCommand extends React.Component {
     this.cleanup = this.cleanup.bind(this);
     this.isInflight = this.isInflight.bind(this);
     this.handleClick = this.handleClick.bind(this);
+    this.closeModal = this.closeModal.bind(this);
+  }
+
+  closeModal () {
+    this.setState({ activeModal: false });
   }
 
   componentDidUpdate () {
@@ -72,7 +77,8 @@ export class BatchCommand extends React.Component {
         selected,
         history,
         isOnModalConfirm: true,
-        isOnModalComplete: false
+        isOnModalComplete: false,
+        closeModal: this.closeModal
       });
       this.setState({ modalOptions });
 
@@ -114,10 +120,10 @@ export class BatchCommand extends React.Component {
   onComplete (errors, results) {
     const delay = this.props.updateDelay ? this.props.updateDelay : updateDelay;
     // turn array of errors from queue into single error for ui
-    const error = this.createErrorMessage(errors);
-    this.setState({ status: (error ? 'error' : 'success') });
+    const errorMessage = this.createErrorMessage(errors);
+    this.setState({ status: (errorMessage ? 'error' : 'success') });
     setTimeout(() => {
-      this.cleanup(error, results);
+      this.cleanup(errorMessage, errors, results);
     }, delay);
   }
 
@@ -128,7 +134,7 @@ export class BatchCommand extends React.Component {
   }
 
   // call onSuccess and onError functions as needed
-  cleanup (error, results) {
+  cleanup (errorMessage, errors, results) {
     const { onSuccess, onError, getModalOptions, selected, history } = this.props;
     this.setState({ completed: 0, status: null });
     if (typeof getModalOptions === 'function') {
@@ -136,13 +142,15 @@ export class BatchCommand extends React.Component {
         history,
         selected,
         results,
-        error,
-        isOnModalComplete: true
+        errors,
+        errorMessage,
+        isOnModalComplete: true,
+        closeModal: this.closeModal
       });
       this.setState({ modalOptions });
     }
-    if (error && typeof onError === 'function') onError(error);
-    if (results && results.length && typeof onSuccess === 'function') onSuccess(results, error);
+    if (errorMessage && typeof onError === 'function') onError(errorMessage);
+    if (results && results.length && typeof onSuccess === 'function') onSuccess(results, errorMessage);
   }
 
   isInflight () {
@@ -154,7 +162,8 @@ export class BatchCommand extends React.Component {
     if (typeof getModalOptions === 'function') {
       const modalOptions = getModalOptions({
         selected,
-        history
+        history,
+        closeModal: this.closeModal
       });
       this.setState({ modalOptions });
     }
@@ -188,7 +197,6 @@ export class BatchCommand extends React.Component {
           text={text}
           className={className}
           disabled={!activeModal && (!todo || !!inflight)}
-          successTimeout={0}
           status={!activeModal && inflight ? 'inflight' : null}
         />
         { activeModal && <div className='modal__cover'></div>}
