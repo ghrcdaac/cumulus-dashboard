@@ -43,7 +43,7 @@ EOS
 chmod a+x aws
 #./aws s3 sync dist_${envs[i]}  s3://${dashboard_bucket[$i]}
 
-./aws s3 ls ${dashboard_bucket[$i]}
+echo ./aws s3 ls "$DASHBOARD_BUCKET"
 rm aws
 (($? != 0)) && { printf '%s\n' "Command exited with non-zero"; exit 1; }
 
