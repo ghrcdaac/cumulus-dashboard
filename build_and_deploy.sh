@@ -40,8 +40,8 @@ docker run --rm \
 	"\$@"
 EOS
 chmod a+x aws
-aws s3 sync dist_${envs[i]}  s3://${dashboard_bucket[$i]} 
-
+#aws s3 sync dist_${envs[i]}  s3://${dashboard_bucket[$i]}
+aws --version
 rm aws
 
 done
