@@ -20,7 +20,7 @@ do
 	export DASHBOARD_BUCKET=${dashboard_bucket[$i]}
 	export APIROOT=${api_root[$i]}
 	export LABELS=ghrc-${envs[$i]}
-	export dist=dist_${envs[$i]}
+	export DIST=dist_${envs[$i]}
 	export AWS_ACCESS_KEY_ID=${access_keys[$i]}
 	export AWS_SECRET_ACCESS_KEY=${secret_keys[$i]}
 	./bin/build_in_docker.sh
