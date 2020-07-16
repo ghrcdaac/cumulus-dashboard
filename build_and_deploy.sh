@@ -3,7 +3,6 @@
 export AWS_REGION=$bamboo_AWS_REGION
 export DAAC_NAME=${bamboo_DAAC_NAME:-ghrc}
 export SERVED_BY_CUMULUS_API=${bamboo_SERVED_BY_CUMULUS_API:-true}
-export LABELS=${bamboo_LABELS:-daac}
 
 
 
@@ -20,10 +19,11 @@ do
 	export STAGE=${envs[$i]}
 	export DASHBOARD_BUCKET=${dashboard_bucket[$i]}
 	export APIROOT=${api_root[$i]}
+	export LABELS=ghrc-${envs[$i]}
 	export dist=dist_${envs[$i]}
 	export AWS_ACCESS_KEY_ID=${access_keys[$i]}
 	export AWS_SECRET_ACCESS_KEY=${secret_keys[$i]}
-	#./bin/build_in_docker.sh
+	./bin/build_in_docker.sh
 cat > aws <<EOS
 #!/usr/bin/env bash
 set -o errexit
@@ -42,9 +42,10 @@ docker run --rm \
 EOS
 chmod a+x aws
 #aws s3 sync dist_${envs[i]}  s3://${dashboard_bucket[$i]}
-ls -al
+ls dist*
 ./aws --version
 rm aws
+(($? != 0)) && { printf '%s\n' "Command exited with non-zero"; exit 1; }
 
 done
 
