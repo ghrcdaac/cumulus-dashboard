@@ -2,7 +2,7 @@
 
 set -evx
 
-DIST="$(pwd)/dist"
+#$DIST="$(pwd)/dist"
 
 echo "Cleaning $DIST directory"
 rm -rf $DIST && mkdir $DIST
