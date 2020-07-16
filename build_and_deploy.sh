@@ -23,8 +23,26 @@ do
 	export AWS_ACCESS_KEY_ID=${access_keys[$i]}
 	export AWS_SECRET_ACCESS_KEY=${secret_keys[$i]}
 	#./bin/build_in_docker.sh
-	aws s3 sync dist_${envs[i]}  s3://${dashboard_bucket[$i]}  --region $AWS_REGION
+cat > aws <<EOS
+#!/usr/bin/env bash
+set -o errexit
+set -o nounset
+set -o pipefail
+# enable interruption signal handling
+trap - INT TERM
+docker run --rm \
+	-t \$(tty &>/dev/null && echo "-i") \
+	-e "AWS_ACCESS_KEY_ID=\${AWS_ACCESS_KEY_ID}" \
+	-e "AWS_SECRET_ACCESS_KEY=\${AWS_SECRET_ACCESS_KEY}" \
+	-e "AWS_DEFAULT_REGION=\${AWS_REGION}" \
+	-v "\$(pwd):/project" \
+	maven.earthdata.nasa.gov/aws-cli \
+	"\$@"
+EOS
+chmod a+x aws
+aws s3 sync dist_${envs[i]}  s3://${dashboard_bucket[$i]} 
 
+rm aws
 
 done
 
