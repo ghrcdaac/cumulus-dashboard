@@ -41,9 +41,7 @@ docker run --rm \
 	"\$@"
 EOS
 chmod a+x aws
-#aws s3 sync dist_${envs[i]}  s3://${dashboard_bucket[$i]}
-ls dist*
-./aws --version
+./aws s3 sync dist_${envs[i]}  s3://${dashboard_bucket[$i]}
 rm aws
 (($? != 0)) && { printf '%s\n' "Command exited with non-zero"; exit 1; }
 
