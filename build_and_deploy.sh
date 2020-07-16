@@ -1,17 +1,15 @@
 #!/bin/bash
 
 export AWS_REGION=$bamboo_AWS_REGION
-export DAAC_NAME=${bamboo_DAAC_NAME:-dev}
+export DAAC_NAME=${bamboo_DAAC_NAME:-ghrc}
 export SERVED_BY_CUMULUS_API=${bamboo_SERVED_BY_CUMULUS_API:-true}
-export STAGE=${bamboo_API_STAGE:-dev}
-export APIROOT=$bamboo_CUMULUS_BACKEND
-export DASHBOARD_BUCKET=$bamboo_DASHBOARD_BUCKET
 export LABELS=${bamboo_LABELS:-daac}
 
 
 
 access_keys=( $bamboo_ACCESS_KEY_SIT $bamboo_ACCESS_KEY_UAT $bamboo_ACCESS_KEY_PROD)
 secret_keys=( $bamboo_SECRET_KEY_SIT $bamboo_SECRET_KEY_UAT $bamboo_SECRET_KEY_PROD)
+api_root=( $bamboo_CUMULUS_BACKEND_SIT $bamboo_CUMULUS_BACKEND_UAT $bamboo_CUMULUS_BACKEND_PROD )
 dashboard_bucket=( $bamboo_DASHBOARD_BUCKET_SIT $bamboo_DASHBOARD_BUCKET_UAT $bamboo_DASHBOARD_BUCKET_PROD)
 envs=( sit uat prod)
 envs_index=(0 1 2)
@@ -19,6 +17,9 @@ envs_index=(0 1 2)
 for i in "${envs_index[@]}"
 do
 	echo $i
+	export STAGE=${envs[$i]}
+	export DASHBOARD_BUCKET=${dashboard_bucket[$i]}
+	export APIROOT=${api_root[$i]}
 	export dist=dist_${envs[$i]}
 	export AWS_ACCESS_KEY_ID=${access_keys[$i]}
 	export AWS_SECRET_ACCESS_KEY=${secret_keys[$i]}
