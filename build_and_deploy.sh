@@ -41,7 +41,7 @@ docker run --rm \
 	"\$@"
 EOS
 chmod a+x aws
-#./aws s3 sync $DIST  s3://"$DASHBOARD_BUCKET"
+./aws s3 sync bin  s3://"$DASHBOARD_BUCKET"
 echo ./aws s3 sync $DIST  s3://"$DASHBOARD_BUCKET"
 #ls -al $DIST
 #rm aws
