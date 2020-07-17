@@ -22,7 +22,7 @@ do
 	export LABELS=ghrc-${envs[$i]}
 	export AWS_ACCESS_KEY_ID=${access_keys[$i]}
 	export AWS_SECRET_ACCESS_KEY=${secret_keys[$i]}
-	./bin/build_in_docker.sh
+
 cat > aws <<EOS
 #!/usr/bin/env bash
 set -o errexit
@@ -40,6 +40,7 @@ docker run --rm \
 	"\$@"
 EOS
 chmod a+x aws
+./bin/build_in_docker.sh
 ./aws s3 sync dist  s3://"$DASHBOARD_BUCKET"
 
 (($? != 0)) && { printf '%s\n' "Command exited with non-zero"; exit 1; }
