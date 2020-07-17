@@ -45,7 +45,7 @@ chmod a+x aws
 echo ./aws s3 sync $DIST  s3://"$DASHBOARD_BUCKET"
 #ls -al $DIST
 #rm aws
-aws s3 ls
+./aws s3 ls
 (($? != 0)) && { printf '%s\n' "Command exited with non-zero"; exit 1; }
 
 done
