@@ -23,7 +23,7 @@ do
 	export DIST=$(pwd)/dist_${envs[$i]}
 	export AWS_ACCESS_KEY_ID=${access_keys[$i]}
 	export AWS_SECRET_ACCESS_KEY=${secret_keys[$i]}
-	./bin/build_in_docker.sh
+	#./bin/build_in_docker.sh
 cat > aws <<EOS
 #!/usr/bin/env bash
 set -o errexit
@@ -41,10 +41,11 @@ docker run --rm \
 	"\$@"
 EOS
 chmod a+x aws
-./aws s3 sync $DIST  s3://"$DASHBOARD_BUCKET"
+#./aws s3 sync $DIST  s3://"$DASHBOARD_BUCKET"
 echo ./aws s3 sync $DIST  s3://"$DASHBOARD_BUCKET"
-ls -al $DIST
-rm aws
+#ls -al $DIST
+#rm aws
+aws s3 ls
 (($? != 0)) && { printf '%s\n' "Command exited with non-zero"; exit 1; }
 
 done
