@@ -2,7 +2,7 @@
 
 set -evx
 
-#$DIST="$(pwd)/dist"
+DIST="$(pwd)/dist"
 
 echo "Cleaning $DIST directory"
 rm -rf $DIST && mkdir $DIST
@@ -24,6 +24,7 @@ apt-get install -y \
 mkdir /build
 rsync -av \
   --exclude .git \
+
   --exclude tmp \
   /cumulus-dashboard/ /build/
 

@@ -20,10 +20,9 @@ do
 	export DASHBOARD_BUCKET=${dashboard_bucket[$i]}
 	export APIROOT=${api_root[$i]}
 	export LABELS=ghrc-${envs[$i]}
-	export DIST=$(pwd)/dist_${envs[$i]}
 	export AWS_ACCESS_KEY_ID=${access_keys[$i]}
 	export AWS_SECRET_ACCESS_KEY=${secret_keys[$i]}
-	#./bin/build_in_docker.sh
+	./bin/build_in_docker.sh
 cat > aws <<EOS
 #!/usr/bin/env bash
 set -o errexit
@@ -41,11 +40,8 @@ docker run --rm \
 	"\$@"
 EOS
 chmod a+x aws
-./aws s3 sync bin  s3://"$DASHBOARD_BUCKET"
-echo ./aws s3 sync $DIST  s3://"$DASHBOARD_BUCKET"
-#ls -al $DIST
-#rm aws
-./aws s3 ls
+./aws s3 sync dist  s3://"$DASHBOARD_BUCKET"
+
 (($? != 0)) && { printf '%s\n' "Command exited with non-zero"; exit 1; }
 
 done
