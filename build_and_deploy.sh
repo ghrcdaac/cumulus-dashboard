@@ -40,10 +40,8 @@ docker run --rm \
 	"\$@"
 EOS
 chmod a+x aws
-#./bin/build_in_docker.sh
-#./aws s3 sync dist  s3://"$DASHBOARD_BUCKET"
-echo $STAGE
-./aws s3 ls
+./bin/build_in_docker.sh
+./aws s3 sync dist  s3://"$DASHBOARD_BUCKET"
 (($? != 0)) && { printf '%s\n' "Command exited with non-zero"; exit 1; }
 
 done
