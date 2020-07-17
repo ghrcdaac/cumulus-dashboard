@@ -11,7 +11,7 @@ secret_keys=( $bamboo_SECRET_KEY_SIT $bamboo_SECRET_KEY_UAT $bamboo_SECRET_KEY_P
 api_root=( $bamboo_CUMULUS_BACKEND_SIT $bamboo_CUMULUS_BACKEND_UAT $bamboo_CUMULUS_BACKEND_PROD )
 dashboard_bucket=( $bamboo_DASHBOARD_BUCKET_SIT $bamboo_DASHBOARD_BUCKET_UAT $bamboo_DASHBOARD_BUCKET_PROD)
 envs=( sit uat prod)
-envs_index=( 0 )
+envs_index=( 0 1 2 )
 
 for i in "${envs_index[@]}"
 do
