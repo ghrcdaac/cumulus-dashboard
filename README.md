@@ -365,3 +365,12 @@ Create and push a new git tag:
 ### 11. Add the release to GitHub
 
 Follow the [Github documentation to create a new release](https://help.github.com/articles/creating-releases/) for the dashboard using the tag that you just pushed. Make sure to use the content from the CHANGELOG for this release as the description of the release on GitHub.
+
+### To sync the repo to the fork
+```jsunicoderegexp
+
+git fetch upstream
+git merge upstream/<tag>
+
+```
+Where tag is the working tag example v1.10.0
