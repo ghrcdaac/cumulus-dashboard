@@ -12,25 +12,18 @@ DOCKER_UID=$(id -u)
 DOCKER_GID=$(id -g)
 cat > tmp/script.sh <<EOS
 #!/bin/sh
-
 set -evx
-
 apt-get update
-
 apt-get install -y \
   rsync \
   git
-
 mkdir /build
 rsync -av \
   --exclude .git \
-  --exclude node_modules \
   --exclude tmp \
   /cumulus-dashboard/ /build/
-
 (
   set -evx
-
   cd /build
   npm install
   APIROOT=$APIROOT \
@@ -40,7 +33,6 @@ rsync -av \
     LABELS=$LABELS \
     SERVED_BY_CUMULUS_API=$SERVED_BY_CUMULUS_API \
     AUTH_METHOD=$AUTH_METHOD npm run build
-
   rsync -av ./dist/ /dist/
   chown -R "${DOCKER_UID}:${DOCKER_GID}" /dist/
 )
