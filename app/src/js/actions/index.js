@@ -3,7 +3,6 @@
 import compareVersions from 'compare-versions';
 import { get as getProperty } from 'object-path';
 import requestPromise from 'request-promise';
-import { history } from '../store/configureStore';
 import { CMR } from '@cumulus/cmrjs';
 import isEmpty from 'lodash.isempty';
 import cloneDeep from 'lodash.clonedeep';
@@ -19,6 +18,7 @@ import { apiLambdaSearchTemplate } from './action-config/apiLambdaSearch';
 import { teaLambdaSearchTemplate } from './action-config/teaLambdaSearch';
 import { s3AccessSearchTemplate } from './action-config/s3AccessSearch';
 import * as types from './types';
+import { historyPushWithQueryParams } from '../utils/url-helper';
 
 const CALL_API = types.CALL_API;
 const {
@@ -572,16 +572,23 @@ export const getDistS3AccessMetrics = (cumulusInstanceMeta) => {
 };
 
 // count queries *must* include type and field properties.
-export const getCount = (options) => {
+export const getCount = (options = {}) => {
+  const { sidebarCount, type, field, ...restOptions } = options;
+  const params = {
+    type,
+    field,
+    ...sidebarCount ? {} : restOptions
+  };
+  const actionType = sidebarCount ? types.COUNT_SIDEBAR : types.COUNT;
   return (dispatch, getState) => {
     const timeFilters = fetchCurrentTimeFilters(getState().datepicker);
     return dispatch({
       [CALL_API]: {
-        type: types.COUNT,
+        type: actionType,
         method: 'GET',
         id: null,
         url: new URL('stats/aggregate', root).href,
-        qs: Object.assign({ type: 'must-include-type', field: 'status' }, options, timeFilters)
+        qs: Object.assign({ type: 'must-include-type', field: 'status' }, params, timeFilters)
       }
     });
   };
@@ -615,18 +622,14 @@ export const clearPdrsSearch = () => ({ type: types.CLEAR_PDRS_SEARCH });
 export const filterPdrs = (param) => ({ type: types.FILTER_PDRS, param: param });
 export const clearPdrsFilter = (paramKey) => ({ type: types.CLEAR_PDRS_FILTER, paramKey: paramKey });
 
-export const listProviders = (options = {}) => {
-  const { listAll = false, ...queryOptions } = options;
-  return (dispatch, getState) => {
-    const timeFilters = listAll ? {} : fetchCurrentTimeFilters(getState().datepicker);
-    return dispatch({
-      [CALL_API]: {
-        type: types.PROVIDERS,
-        method: 'GET',
-        url: new URL('providers', root).href,
-        qs: Object.assign({ limit: defaultPageLimit }, queryOptions, timeFilters)
-      }
-    });
+export const listProviders = (options) => {
+  return {
+    [CALL_API]: {
+      type: types.PROVIDERS,
+      method: 'GET',
+      url: new URL('providers', root).href,
+      qs: Object.assign({ limit: defaultPageLimit }, options)
+    }
   };
 };
 
@@ -748,7 +751,7 @@ export const loginError = (error) => {
   return (dispatch) => {
     return dispatch(deleteToken())
       .then(() => dispatch({ type: 'LOGIN_ERROR', error }))
-      .then(() => history.push('/auth'));
+      .then(() => historyPushWithQueryParams('/auth'));
   };
 };
 
@@ -988,3 +991,8 @@ export const searchReconciliationReports = (infix) => ({ type: types.SEARCH_RECO
 export const clearReconciliationReportSearch = () => ({ type: types.CLEAR_RECONCILIATIONS_SEARCH });
 export const filterReconciliationReports = (param) => ({ type: types.FILTER_RECONCILIATIONS, param: param });
 export const clearReconciliationReportsFilter = (paramKey) => ({ type: types.CLEAR_RECONCILIATIONS_FILTER, paramKey: paramKey });
+
+export const searchReconciliationReport = (searchString) => ({ type: types.SEARCH_RECONCILIATION, searchString });
+export const clearReconciliationSearch = () => ({ type: types.CLEAR_RECONCILIATION_SEARCH });
+export const filterReconciliationReport = (param) => ({ type: types.FILTER_RECONCILIATION, param: param });
+export const clearReconciliationReportFilter = (paramKey) => ({ type: types.CLEAR_RECONCILIATION_FILTER, paramKey: paramKey });

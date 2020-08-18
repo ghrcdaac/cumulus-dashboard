@@ -27,8 +27,8 @@ describe('Dashboard PDRs Page', () => {
       // shows a summary count of completed and failed pdrs
       cy.get('.overview-num__wrapper ul li')
         .first().contains('li', 'Completed').contains('li', 4)
-        .next().contains('li', 'Running').contains('li', 4)
-        .next().contains('li', 'Failed').contains('li', 2);
+        .next().contains('li', 'Failed').contains('li', 2)
+        .next().contains('li', 'Running').contains('li', 4);
 
       // shows a list of PDRs
       cy.getFakeApiFixture('pdrs').as('pdrsListFixture');
@@ -63,7 +63,7 @@ describe('Dashboard PDRs Page', () => {
 
     it('Should update URL when dropdown filters are changed', () => {
       cy.visit('/pdrs');
-      cy.get('.filter__item').eq(0).as('page-size-input');
+      cy.get('.filter__item').eq(1).as('page-size-input');
       cy.get('@page-size-input').should('be.visible').click().type('10{enter}');
       cy.url().should('include', 'limit=10');
     });

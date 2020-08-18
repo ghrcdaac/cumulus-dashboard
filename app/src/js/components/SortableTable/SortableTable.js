@@ -145,15 +145,9 @@ const SortableTable = ({
   }, [selectedRowIds, onSelect]);
 
   useEffect(() => {
-    const [sortProps = {}] = sortBy;
-    const { id, desc } = sortProps;
-    let sortOrder;
-    if (typeof desc !== 'undefined') {
-      sortOrder = desc ? 'desc' : 'asc';
-    }
-    const sortFieldId = id || sortId;
+    const sortProps = (sortBy.length) ? sortBy : [{ id: sortId, desc: (order === 'desc') }];
     if (typeof changeSortProps === 'function') {
-      changeSortProps({ sortId: sortFieldId, order: sortOrder || order });
+      changeSortProps(sortProps);
     }
   }, [changeSortProps, sortBy, sortId, order]);
 
@@ -223,6 +217,7 @@ const SortableTable = ({
             previousPage={previousPage}
             pageOptions={pageOptions}
             pageIndex={pageIndex}
+            dataCount={data.length}
           />}
       </form>
     </div>

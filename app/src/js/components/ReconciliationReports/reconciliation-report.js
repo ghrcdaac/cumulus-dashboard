@@ -8,56 +8,21 @@ import { Collapse, Dropdown as DropdownBootstrap } from 'react-bootstrap';
 import Card from 'react-bootstrap/Card';
 import { connect } from 'react-redux';
 import { withRouter } from 'react-router-dom';
-import { getReconciliationReport } from '../../actions';
+import {
+  getReconciliationReport,
+  searchReconciliationReport,
+  clearReconciliationSearch,
+  filterReconciliationReport,
+  clearReconciliationReportFilter
+} from '../../actions';
 import Breadcrumbs from '../Breadcrumbs/Breadcrumbs';
 import ErrorReport from '../Errors/report';
 import Loading from '../LoadingIndicator/loading-indicator';
 import SortableTable from '../SortableTable/SortableTable';
 import { reshapeReport } from './reshape-report';
 import { downloadFile } from '../../utils/download-file';
-
-const breadcrumbConfig = [
-  {
-    label: 'Dashboard Home',
-    href: '/',
-  },
-  {
-    label: 'Reports Overview',
-    href: '/reconciliation-reports',
-  },
-  {
-    label: 'Report',
-    active: true,
-  },
-];
-
-const ReportStateHeader = ({ reportState, startDate, endDate }) => {
-  const displayStartDate = startDate
-    ? new Date(startDate).toLocaleDateString()
-    : 'missing';
-  const displayEndDate = endDate
-    ? new Date(endDate).toLocaleDateString()
-    : 'missing';
-  return (
-    <>
-      <b>Date Range:</b> {displayStartDate} to {displayEndDate} <b>state:</b>{' '}
-      <span
-        className={`status__badge status__badge--${
-          reportState === 'PASSED' ? 'passed' : 'conflict'
-        }`}
-      >
-        {' '}
-        {reportState}{' '}
-      </span>
-    </>
-  );
-};
-
-ReportStateHeader.propTypes = {
-  reportState: PropTypes.string,
-  endDate: PropTypes.string,
-  startDate: PropTypes.string,
-};
+import Search from '../Search/search';
+import Dropdown from '../DropDown/dropdown';
 
 /**
  * returns PASSED or CONFLICT based on reconcilation report data.
@@ -70,45 +35,73 @@ const reportState = (dataList) => {
   return anyBad ? 'CONFLICT' : 'PASSED';
 };
 
+const bucketsForFilter = (allBuckets) => {
+  const uniqueBuckets = [...new Set(allBuckets)];
+  return uniqueBuckets.map((bucket) => {
+    return {
+      id: bucket,
+      label: bucket
+    };
+  });
+};
+
 const ReconciliationReport = ({ reconciliationReports, dispatch, match }) => {
   const [activeId, setActiveId] = useState('dynamo');
-
   const { reconciliationReportName } = match.params;
-
-  useEffect(() => {
-    const { reconciliationReportName } = match.params;
-    if (!reconciliationReports.map[reconciliationReportName]) {
-      dispatch(getReconciliationReport(reconciliationReportName));
-    }
-  }, [dispatch, match.params, reconciliationReports.map]);
-
   const record = reconciliationReports.map[reconciliationReportName];
-
-  const { internalComparison, cumulusVsCmrComparison } = reshapeReport(record);
+  const { data: recordData } = record || {};
+  const {
+    reportStartTime = null,
+    reportEndTime = null,
+    error = null,
+  } = recordData || {};
+  const displayStartDate = reportStartTime
+    ? new Date(reportStartTime).toLocaleDateString()
+    : 'missing';
+  const displayEndDate = reportEndTime
+    ? new Date(reportEndTime).toLocaleDateString()
+    : 'missing';
+  const filterBucket = reconciliationReports.list.params.bucket;
+  const filterString = reconciliationReports.searchString;
+  const { internalComparison, cumulusVsCmrComparison, allBuckets } = reshapeReport(record, filterString, filterBucket);
   const reportComparisons = [...internalComparison, ...cumulusVsCmrComparison];
+  const theReportState = reportState(reportComparisons);
+  const activeCardTables = reportComparisons.find(
+    (displayObj) => displayObj.id === activeId
+  ).tables;
+  const breadcrumbConfig = [
+    {
+      label: 'Dashboard Home',
+      href: '/',
+    },
+    {
+      label: 'Reports',
+      href: '/reconciliation-reports',
+    },
+    {
+      label: reconciliationReportName,
+      active: true,
+    },
+  ];
 
   const [expandedState, setExpandedState] = useState(
     reportComparisons.reduce((object, item) => {
-      object[item.id] = item.tables.reduce((tableObject, table) => {
-        tableObject[table.id] = false;
+      object[item.id] = item.tables.reduce((tableObject, table, index) => {
+        // expand the zeroth table in each bucket. collapse all others
+        tableObject[table.id] = index === 0;
         return tableObject;
       }, {});
       return object;
     }, {})
   );
 
+  useEffect(() => {
+    dispatch(getReconciliationReport(reconciliationReportName));
+  }, [dispatch, reconciliationReportName]);
+
   if (!record || (record.inflight && !record.data)) {
     return <Loading />;
   }
-
-  const theReportState = reportState(reportComparisons);
-  const {
-    reportStartTime = null,
-    reportEndTime = null,
-    error = null,
-  } = record.data;
-
-  const activeCardTables = reportComparisons.find((displayObj) => displayObj.id === activeId).tables;
 
   function handleCardClick(e, id) {
     e.preventDefault();
@@ -148,28 +141,34 @@ const ReconciliationReport = ({ reconciliationReports, dispatch, match }) => {
   }
 
   function convertToCSV(data, columns) {
-    const csvHeader = columns.map((column) => {
-      return column.accessor;
-    }).join(',');
+    const csvHeader = columns
+      .map((column) => {
+        return column.accessor;
+      })
+      .join(',');
 
-    const csvData = data.map((item) => {
-      let line = '';
-      for (const prop in item) {
-        if (line !== '') line += ',';
-        line += item[prop];
-      }
-      return line;
-    }).join('\r\n');
+    const csvData = data
+      .map((item) => {
+        let line = '';
+        for (const prop in item) {
+          if (line !== '') line += ',';
+          line += item[prop];
+        }
+        return line;
+      })
+      .join('\r\n');
     return `${csvHeader}\r\n${csvData}`;
   }
 
-  function handleDownloadJsonClick (e) {
+  function handleDownloadJsonClick(e) {
     e.preventDefault();
-    const jsonHref = `data:text/json;charset=utf-8,${encodeURIComponent(JSON.stringify(record.data))}`;
+    const jsonHref = `data:text/json;charset=utf-8,${encodeURIComponent(
+      JSON.stringify(record.data)
+    )}`;
     downloadFile(jsonHref, `${reconciliationReportName}.json`);
   }
 
-  function handleDownloadCsvClick (e, table) {
+  function handleDownloadCsvClick(e, table) {
     e.preventDefault();
     const { name, data: tableData, columns: tableColumns } = table;
     const data = convertToCSV(tableData, tableColumns);
@@ -196,36 +195,69 @@ const ReconciliationReport = ({ reconciliationReports, dispatch, match }) => {
               {reconciliationReportName}
             </h1>
           </div>
-          <ReportStateHeader
-            reportState={theReportState}
-            startDate={reportStartTime}
-            endDate={reportEndTime}
-          />
-          <DropdownBootstrap className='form-group__element--right'>
-            <DropdownBootstrap.Toggle className='button button--small button--download' id="download-report-dropdown">
+          <div className="status--process">
+            <dl className="status--process--report">
+              <dt>Date Range:</dt>
+              <dd>{`${displayStartDate} to ${displayEndDate}`}</dd>
+              <dt>State:</dt>
+              <dd
+                className={`status__badge status__badge--${
+                  theReportState === 'PASSED' ? 'passed' : 'conflict'
+                }`}
+              >
+                {theReportState}
+              </dd>
+            </dl>
+            <DropdownBootstrap className="form-group__element--right">
+              <DropdownBootstrap.Toggle
+                className="button button--small button--download"
+                id="download-report-dropdown"
+              >
                 Download Report
-            </DropdownBootstrap.Toggle>
-            <DropdownBootstrap.Menu>
-              <DropdownBootstrap.Item as='button' onClick={handleDownloadJsonClick}>JSON - Full Report</DropdownBootstrap.Item>
-              {activeCardTables.map((table, index) => {
-                return <DropdownBootstrap.Item key={`${activeId}-${index}`} as='button' onClick={(e) => handleDownloadCsvClick(e, table)}>CSV - {table.name}</DropdownBootstrap.Item>;
-              })}
-            </DropdownBootstrap.Menu>
-          </DropdownBootstrap>
-          {error ? <ErrorReport report={error} /> : null}
+              </DropdownBootstrap.Toggle>
+              <DropdownBootstrap.Menu>
+                <DropdownBootstrap.Item
+                  as="button"
+                  onClick={handleDownloadJsonClick}
+                >
+                  JSON - Full Report
+                </DropdownBootstrap.Item>
+                {activeCardTables.map((table, index) => {
+                  return (
+                    <DropdownBootstrap.Item
+                      key={`${activeId}-${index}`}
+                      as="button"
+                      onClick={(e) => handleDownloadCsvClick(e, table)}
+                    >
+                      CSV - {table.name}
+                    </DropdownBootstrap.Item>
+                  );
+                })}
+              </DropdownBootstrap.Menu>
+            </DropdownBootstrap>
+          </div>
+          {error && <ErrorReport report={error} />}
         </div>
       </section>
 
-      <section className="page__section page__section--small">
+      <section className="page__section">
+        <div className="heading__wrapper--border">
+          <h2 className="heading--medium heading--shared-content with-description">
+            Bucket Status
+          </h2>
+        </div>
+        <p className="description">
+          Click on the bucket to see comparison report details below.
+        </p>
         <div className="tablecard--wrapper">
           <TableCards
-            titleCaption="Cumulus intercomparison"
+            titleCaption="Cumulus (DynamoDB) versus S3"
             config={internalComparison}
             onClick={handleCardClick}
             activeCard={activeId}
           />
           <TableCards
-            titleCaption="Cumulus versus CMR comparison"
+            titleCaption="Cumulus versus CMR"
             config={cumulusVsCmrComparison}
             onClick={handleCardClick}
             activeCard={activeId}
@@ -239,6 +271,26 @@ const ReconciliationReport = ({ reconciliationReports, dispatch, match }) => {
             <span className="link" onClick={handleExpandClick}>
               {!allCollapsed() ? 'Expand All' : 'Collapse All'}
             </span>
+          </div>
+
+          <div className='filters'>
+            <Search
+              dispatch={dispatch}
+              action={searchReconciliationReport}
+              clear={clearReconciliationSearch}
+              label='Search'
+              placeholder='Search'
+            />
+            <Dropdown
+              options={bucketsForFilter(allBuckets)}
+              action={filterReconciliationReport}
+              clear={clearReconciliationReportFilter}
+              paramKey='bucket'
+              label='Bucket'
+              inputProps={{
+                placeholder: 'All'
+              }}
+            />
           </div>
 
           {reportComparisons

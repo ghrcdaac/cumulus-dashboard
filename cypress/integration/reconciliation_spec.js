@@ -44,11 +44,11 @@ describe('Dashboard Reconciliation Reports Page', () => {
 
     it('should update dropdown with label when visiting bookmarkable URL', () => {
       cy.visit('/reconciliation-reports?status=Generated');
-      cy.get('#form-Status-status > div > input').as('status-input');
+      cy.get('.filter-status .rbt-input-main').as('status-input');
       cy.get('@status-input').should('have.value', 'Generated');
 
       cy.visit('/reconciliation-reports?type=Inventory');
-      cy.get('#form-Report\\ Type-type > div > input').as('type-input');
+      cy.get('.filter-type .rbt-input-main').as('type-input');
       cy.get('@type-input').should('have.value', 'Inventory');
     });
 
@@ -57,9 +57,9 @@ describe('Dashboard Reconciliation Reports Page', () => {
       cy.get('.search').as('search');
       cy.get('@search').should('be.visible').click().type('inventoryReport-2020');
 
-      cy.get('#form-Report\\ Type-type > div > input').as('type-input');
+      cy.get('.filter-type .rbt-input-main').as('type-input');
       cy.get('@type-input').should('be.visible').click().type('invent{enter}');
-      cy.get('#form-Status-status > div > input').as('status-input');
+      cy.get('.filter-status .rbt-input-main').as('status-input');
       cy.get('@status-input').should('be.visible').click().type('gener{enter}');
       cy.url().should('include', 'search=inventoryReport-2020')
         .and('include', 'type=Inventory')
@@ -128,9 +128,8 @@ describe('Dashboard Reconciliation Reports Page', () => {
 
       /** Table Filters **/
       cy.get('.table__filters');
-      cy.get('.multicard > :nth-child(2)')
+      cy.get('.multicard__table').eq(0)
         .within(() => {
-          cy.get('.card-header').click();
           cy.contains('.table__filters .button__filter', 'Show Column Filters').click();
           cy.get('.table__filters--collapse').should('be.visible');
           const filterLabel = 'Collection name';
@@ -147,16 +146,18 @@ describe('Dashboard Reconciliation Reports Page', () => {
 
     it('Has a way to expand/collapse all tables', () => {
       cy.visit('/reconciliation-reports/report/inventoryReport-20200114T205238781');
+      cy.contains('.card-header', 'Cumulus').click();
       cy.get('.multicard__header').should('exist');
-      cy.get('.multicard__header--expanded').should('not.exist');
+      cy.get('.multicard__header--expanded').should('have.length', 1);
       cy.get('.link').should('contain', 'Expand All').click();
 
       cy.get('.multicard__header--expanded').should('exist');
+      cy.get('.multicard__header--expanded').should('have.length', 3);
       cy.get('.link').should('contain', 'Collapse All');
 
-      cy.get('.multicard__header').click();
+      cy.get('.multicard__header').eq(0).click();
       cy.get('.link').should('contain', 'Expand All');
-      cy.get('.multicard__header--expanded').should('not.exist');
+      cy.get('.multicard__header--expanded').should('have.length', 2);
     });
 
     it('should have download option for full report and individual tables', () => {
@@ -179,6 +180,78 @@ describe('Dashboard Reconciliation Reports Page', () => {
       cy.get('.legend-items--item').eq(0).should('contain', 'Granule not found');
       cy.get('.legend-items--item').eq(1).should('contain', 'Missing image file');
       cy.get('.legend-items--item').eq(2).should('contain', 'No issues/conflicts');
+    });
+
+    it('should have the option to search the report', () => {
+      cy.visit('/reconciliation-reports/report/inventoryReport-20200114T205238781');
+
+      cy.get('.search').as('search');
+      cy.get('@search').should('be.visible').click().type('MOD09GQ');
+
+      /** Table Cards **/
+
+      const cards = [
+        {
+          title: 'DynamoDB',
+          count: 12
+        },
+        {
+          title: 'S3',
+          count: 214
+        },
+        {
+          title: 'Cumulus',
+          count: 3
+        },
+        {
+          title: 'CMR',
+          count: 1
+        }
+      ];
+
+      cy.get('.card').each(($card, index, $cards) => {
+        const card = cy.wrap($card);
+        card.click();
+        card.should('have.class', 'active');
+        card.get('.card-header').contains(cards[index].title);
+        card.get('.card-title').contains(cards[index].count);
+      });
+    });
+
+    it('should have the option to filter the report by S3 bucket', () => {
+      cy.visit('/reconciliation-reports/report/inventoryReport-20200114T205238781');
+
+      cy.get('.filter-bucket .rbt-input-main').as('bucket-input');
+      cy.get('@bucket-input').should('be.visible').click().type('mhs3-pri{enter}');
+
+      /** Table Cards **/
+
+      const cards = [
+        {
+          title: 'DynamoDB',
+          count: 10
+        },
+        {
+          title: 'S3',
+          count: 36
+        },
+        {
+          title: 'Cumulus',
+          count: 20
+        },
+        {
+          title: 'CMR',
+          count: 390
+        }
+      ];
+
+      cy.get('.card').each(($card, index, $cards) => {
+        const card = cy.wrap($card);
+        card.click();
+        card.should('have.class', 'active');
+        card.get('.card-header').contains(cards[index].title);
+        card.get('.card-title').contains(cards[index].count);
+      });
     });
   });
 });

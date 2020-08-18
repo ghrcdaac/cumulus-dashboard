@@ -12,39 +12,19 @@ import {
   clearOperationsSearch,
   getCount,
   getCumulusInstanceMetadata,
-  interval,
   listCollections,
   listOperations,
   listWorkflows
 } from '../../actions';
 import { tally } from '../../utils/format';
-import {
-  workflowOptions,
-  collectionOptions
-} from '../../selectors';
 import List from '../Table/Table';
 import Dropdown from '../DropDown/dropdown';
 import Search from '../Search/search';
-import _config from '../../config';
 import { tableColumns } from '../../utils/table-config/operations';
 import ListFilters from '../ListActions/ListFilters';
 import pageSizeOptions from '../../utils/page-size';
-
-const { updateInterval } = _config;
-
-const statusOptions = {
-  Running: 'RUNNING',
-  Succeeded: 'SUCCEEDED',
-  'Task Failed': 'TASK_FAILED',
-  'Runner Failed': 'RUNNER_FAILED'
-};
-
-const typeOptions = {
-  'Bulk Granules': 'Bulk Granules',
-  'ES Index': 'ES Index',
-  'Bulk Delete': 'Bulk Delete',
-  'Kinesis Replay': 'Kinesis Replay'
-};
+import { operationStatus } from '../../utils/status';
+import { operationTypes } from '../../utils/type';
 
 class OperationOverview extends React.Component {
   constructor (props) {
@@ -55,29 +35,25 @@ class OperationOverview extends React.Component {
   }
 
   componentDidMount () {
-    // use a slightly slower update interval, since the dropdown fields
-    // will change less frequently.
-    this.cancelInterval = interval(this.queryMeta, updateInterval, true);
+    this.queryMeta();
     this.props.dispatch(getCumulusInstanceMetadata());
   }
 
-  componentWillUnmount () {
-    if (this.cancelInterval) { this.cancelInterval(); }
-  }
-
   generateQuery () {
-    return {};
+    return { ...this.props.queryParams };
   }
 
   queryMeta () {
-    this.props.dispatch(listCollections({
+    const { dispatch, queryParams } = this.props;
+    dispatch(listCollections({
       limit: 100,
       fields: 'name,version'
     }));
-    this.props.dispatch(listWorkflows());
-    this.props.dispatch(getCount({
+    dispatch(listWorkflows());
+    dispatch(getCount({
       type: 'executions',
-      field: 'status'
+      field: 'status',
+      ...queryParams
     }));
   }
 
@@ -88,7 +64,7 @@ class OperationOverview extends React.Component {
   }
 
   render () {
-    const { operations } = this.props;
+    const { dispatch, operations } = this.props;
     const { list } = operations;
     const { count } = list.meta;
     const mutableList = cloneDeep(list);
@@ -117,7 +93,7 @@ class OperationOverview extends React.Component {
           </div>
           <List
             list={mutableList}
-            dispatch={this.props.dispatch}
+            dispatch={dispatch}
             action={listOperations}
             tableColumns={tableColumns}
             query={this.generateQuery()}
@@ -126,12 +102,12 @@ class OperationOverview extends React.Component {
           >
             <ListFilters>
 
-              <Search dispatch={this.props.dispatch}
+              <Search dispatch={dispatch}
                 action={searchOperations}
                 clear={clearOperationsSearch}
               />
               <Dropdown
-                options={statusOptions}
+                options={operationStatus}
                 action={filterOperations}
                 clear={clearOperationsFilter}
                 paramKey={'status'}
@@ -139,7 +115,7 @@ class OperationOverview extends React.Component {
               />
 
               <Dropdown
-                options={typeOptions}
+                options={operationTypes}
                 action={filterOperations}
                 clear={clearOperationsFilter}
                 paramKey={'operationType'}
@@ -164,15 +140,10 @@ class OperationOverview extends React.Component {
 
 OperationOverview.propTypes = {
   dispatch: PropTypes.func,
-  stats: PropTypes.object,
   operations: PropTypes.object,
-  collectionOptions: PropTypes.object,
-  workflowOptions: PropTypes.object
+  queryParams: PropTypes.object,
 };
 
 export default withRouter(connect(state => ({
-  stats: state.stats,
   operations: state.operations,
-  workflowOptions: workflowOptions(state),
-  collectionOptions: collectionOptions(state)
 }))(OperationOverview));
