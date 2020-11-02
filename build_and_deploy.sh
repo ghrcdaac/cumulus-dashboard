@@ -12,7 +12,7 @@ api_root=( $bamboo_CUMULUS_BACKEND_SIT $bamboo_CUMULUS_BACKEND_UAT $bamboo_CUMUL
 dashboard_bucket=( $bamboo_DASHBOARD_BUCKET_SIT $bamboo_DASHBOARD_BUCKET_UAT $bamboo_DASHBOARD_BUCKET_PROD)
 envs=( sit uat prod)
 #envs_index=( 0 1 2 )
-envs_index=( 0 )
+envs_index=( 0 1 )
 for i in "${envs_index[@]}"
 do
 	echo $i
