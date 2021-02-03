@@ -9,7 +9,7 @@ import {
   getFormattedCollectionId,
   collectionLink,
   providerLink,
-  fromNow
+  fromNowWithTooltip
 } from '../format';
 import { strings } from '../../components/locale';
 import { getPersistentQueryParams } from '../url-helper';
@@ -42,7 +42,8 @@ export const tableColumns = [
   },
   {
     Header: 'Timestamp',
-    accessor: (row) => fromNow(row.timestamp),
+    accessor: 'timestamp',
+    Cell: ({ cell: { value } }) => fromNowWithTooltip(value),
     id: 'timestamp'
   }
 ];
@@ -60,7 +61,7 @@ export const bulkActions = (rules) => [{
     return enableRule(filteredRule);
   },
   state: rules.enabled,
-  confirm: (d) => `Enable ${d} Rule(s)?`,
+  confirm: (d) => `Enable ${d} Rule${d > 1 ? 's' : ''}?`,
   className: 'button button--green button--enable button--small form-group__element'
 }, {
   text: 'Disable Rule',
@@ -70,7 +71,7 @@ export const bulkActions = (rules) => [{
     return disableRule(filteredRule);
   },
   state: rules.disabled,
-  confirm: (d) => `Disable ${d} Rule(s)?`,
+  confirm: (d) => `Disable ${d} Rule${d > 1 ? 's' : ''}?`,
   className: 'button button--green button--disable button--small form-group__element'
 },
 {
@@ -80,6 +81,6 @@ export const bulkActions = (rules) => [{
   text: 'Delete Rule',
   action: deleteRule,
   state: rules.deleted,
-  confirm: (d) => `Delete ${d} Rule(s)?`,
+  confirm: (d) => `Delete ${d} Rule${d > 1 ? 's' : ''}?`,
   className: 'button button--delete button--small form-group__element'
 }];

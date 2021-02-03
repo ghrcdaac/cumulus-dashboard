@@ -16,27 +16,26 @@ import {
   applyWorkflowToGranule,
   applyRecoveryWorkflowToGranule,
   getOptionsCollectionName,
-  getGranuleCSV
+  getOptionsProviderName,
 } from '../../actions';
 import { lastUpdated, tally } from '../../utils/format';
 import {
-  tableColumns,
+  bulkActions,
   defaultWorkflowMeta,
   executeDialog,
-  bulkActions,
-  recoverAction
+  groupAction,
+  recoverAction,
+  tableColumns,
 } from '../../utils/table-config/granules';
+import statusOptions from '../../utils/status';
+import { strings } from '../locale';
+import { workflowOptionNames } from '../../selectors';
 import List from '../Table/Table';
 import Dropdown from '../DropDown/dropdown';
 import Search from '../Search/search';
 import Overview from '../Overview/overview';
-import statusOptions from '../../utils/status';
-import { strings } from '../locale';
-import { workflowOptionNames } from '../../selectors';
-import { window } from '../../utils/browser';
 import ListFilters from '../ListActions/ListFilters';
 import Breadcrumbs from '../Breadcrumbs/Breadcrumbs';
-import { downloadFile } from '../../utils/download-file';
 
 const breadcrumbConfig = [
   {
@@ -60,10 +59,11 @@ class GranulesOverview extends React.Component {
     this.getExecuteOptions = this.getExecuteOptions.bind(this);
     this.setWorkflowMeta = this.setWorkflowMeta.bind(this);
     this.applyRecoveryWorkflow = this.applyRecoveryWorkflow.bind(this);
-    this.downloadGranuleCSV = this.downloadGranuleCSV.bind(this);
+    this.updateSelection = this.updateSelection.bind(this);
     this.state = {
       workflow: this.props.workflowOptions[0],
-      workflowMeta: defaultWorkflowMeta
+      workflowMeta: defaultWorkflowMeta,
+      selected: []
     };
   }
 
@@ -99,7 +99,9 @@ class GranulesOverview extends React.Component {
       }
     };
     const { granules, config } = this.props;
-    let actions = bulkActions(granules, actionConfig);
+    const { selected } = this.state;
+    const selectedGranules = selected.map((id) => granules.list.data.find((g) => id === g.granuleId));
+    let actions = bulkActions(granules, actionConfig, selectedGranules);
     if (config.enableRecovery) {
       actions = actions.concat(recoverAction(granules, actionConfig));
     }
@@ -138,22 +140,17 @@ class GranulesOverview extends React.Component {
     ];
   }
 
-  downloadGranuleCSV () {
-    const { dispatch } = this.props;
-    dispatch(getGranuleCSV()).then(() => {
-      const { granuleCSV } = this.props;
-      const { data } = granuleCSV;
-      const csvData = new Blob([data], { type: 'text/csv' });
-      const url = window.URL.createObjectURL(csvData);
-      downloadFile(url, 'granules.csv');
-    });
+  updateSelection(selected) {
+    this.setState({ selected });
   }
 
   render () {
-    const { collections, granules } = this.props;
+    const { collections, granules, providers } = this.props;
     const { list } = granules;
     const { dropdowns } = collections;
+    const { dropdowns: providerDropdowns } = providers;
     const { count, queriedAt } = list.meta;
+
     return (
       <div className='page__component'>
         <Helmet>
@@ -172,10 +169,6 @@ class GranulesOverview extends React.Component {
         <section className='page__section'>
           <div className='heading__wrapper--border'>
             <h2 className='heading--medium heading--shared-content with-description'>{strings.granules} <span className='num-title'>{count ? ` ${tally(count)}` : 0}</span></h2>
-            <a className='csv__download button button--small button--download button--green form-group__element--right'
-              id='download_link'
-              onClick={this.downloadGranuleCSV}
-            >Download Granule List</a>
           </div>
           <List
             list={list}
@@ -183,23 +176,22 @@ class GranulesOverview extends React.Component {
             tableColumns={tableColumns}
             query={this.generateQuery()}
             bulkActions={this.generateBulkActions()}
+            groupAction={groupAction}
             rowId='granuleId'
-            sortId='timestamp'
+            initialSortId='timestamp'
             filterAction={filterGranules}
             filterClear={clearGranulesFilter}
+            onSelect={this.updateSelection}
           >
+            <Search
+              action={searchGranules}
+              clear={clearGranulesSearch}
+              label='Search'
+              labelKey="granuleId"
+              placeholder='Granule ID'
+              searchKey="granules"
+            />
             <ListFilters>
-              <Search
-                action={searchGranules}
-                clear={clearGranulesSearch}
-                inputProps={{
-                  className: 'search search--large',
-                }}
-                label='Search'
-                labelKey="granuleId"
-                placeholder='Granule ID'
-                searchKey="granules"
-              />
               <Dropdown
                 options={statusOptions}
                 action={filterGranules}
@@ -218,7 +210,20 @@ class GranulesOverview extends React.Component {
                 paramKey='collectionId'
                 label={strings.collection}
                 inputProps={{
-                  placeholder: 'All'
+                  placeholder: 'All',
+                  className: 'dropdown--large',
+                }}
+              />
+              <Dropdown
+                getOptions={getOptionsProviderName}
+                options={get(providerDropdowns, ['provider', 'options'])}
+                action={filterGranules}
+                clear={clearGranulesFilter}
+                paramKey="provider"
+                label="Provider"
+                inputProps={{
+                  placeholder: 'All',
+                  className: 'dropdown--medium',
                 }}
               />
             </ListFilters>
@@ -233,10 +238,10 @@ GranulesOverview.propTypes = {
   collections: PropTypes.object,
   config: PropTypes.object,
   dispatch: PropTypes.func,
-  granuleCSV: PropTypes.object,
   granules: PropTypes.object,
   queryParams: PropTypes.object,
   workflowOptions: PropTypes.array,
+  providers: PropTypes.object,
 };
 
 export { GranulesOverview };
@@ -244,7 +249,8 @@ export { GranulesOverview };
 export default withRouter(withQueryParams()(connect((state) => ({
   collections: state.collections,
   config: state.config,
-  granuleCSV: state.granuleCSV,
   granules: state.granules,
+  selected: state.selected,
   workflowOptions: workflowOptionNames(state),
+  providers: state.providers
 }))(GranulesOverview)));

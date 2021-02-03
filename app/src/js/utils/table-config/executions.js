@@ -2,9 +2,8 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import {
   displayCase,
-  fromNow,
   seconds,
-  truncate,
+  fromNowWithTooltip,
   formatCollectionId
 } from '../format';
 import { strings } from '../../components/locale';
@@ -15,7 +14,7 @@ export const tableColumns = [
     Header: 'Name',
     accessor: 'name',
     Cell: ({ row: { original: { arn, name } } }) => ( // eslint-disable-line react/prop-types
-      <Link to={(location) => ({ pathname: `/executions/execution/${arn}`, search: getPersistentQueryParams(location) })} title={name}>{truncate(name, 24)}</Link>)
+      <Link to={(location) => ({ pathname: `/executions/execution/${arn}`, search: getPersistentQueryParams(location) })} title={name}>{name}</Link>)
   },
   {
     Header: 'Status',
@@ -28,7 +27,8 @@ export const tableColumns = [
   },
   {
     Header: 'Created',
-    accessor: (row) => fromNow(row.createdAt),
+    accessor: 'createdAt',
+    Cell: ({ cell: { value } }) => fromNowWithTooltip(value),
     id: 'createdAt'
   },
   {

@@ -5,8 +5,8 @@ import { Helmet } from 'react-helmet';
 import { connect } from 'react-redux';
 import { withRouter } from 'react-router-dom';
 import { Form, Field } from 'react-final-form';
-import { OverlayTrigger, Tooltip } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faInfoCircle } from '@fortawesome/free-solid-svg-icons';
 import {
   createReconciliationReport,
   listCollections,
@@ -17,6 +17,7 @@ import { historyPushWithQueryParams } from '../../utils/url-helper';
 import { reconciliationReportTypes } from '../../utils/type';
 import { dateTimeFormat } from '../../utils/datepicker';
 import SimpleDropdown from '../DropDown/simple-dropdown';
+import Tooltip from '../Tooltip/tooltip';
 import Datepicker from '../Datepicker/Datepicker';
 import TextForm from '../TextAreaForm/text';
 import { displayCase, getCollectionId } from '../../utils/format';
@@ -137,7 +138,6 @@ const CreateReconciliationReport = ({
     }));
   }
 
-  // eslint-disable-next-line react/prop-types
   function renderForm({ handleSubmit, submitting, values }) {
     const { collectionId, granuleId, provider, reportType } = values || {};
 
@@ -148,9 +148,10 @@ const CreateReconciliationReport = ({
     return (
       <form onSubmit={handleSubmit} className="create-report">
         <div>
-          <label>Report Type</label>
+          <label htmlFor="reportType">Report Type</label>
           <div className="form__item form__item--tooltip">
             <Field
+              inputId="reportType"
               className="reportType"
               name="reportType"
               component={SimpleDropdownAdapter}
@@ -159,19 +160,18 @@ const CreateReconciliationReport = ({
               format={formatDropdown}
             />
             {reportType && (
-              <OverlayTrigger
-                placement="bottom"
-                overlay={
-                  <Tooltip className="tooltip">
-                    {getTooltipInfoFromType(reportType)}
-                  </Tooltip>
+              <Tooltip
+                className="tooltip--light"
+                id="report-type-tooltip"
+                placement="right"
+                target={
+                  <FontAwesomeIcon
+                    className="button__icon--animation"
+                    icon={faInfoCircle}
+                  />
                 }
-              >
-                <FontAwesomeIcon
-                  className="button__icon--animation"
-                  icon="info-circle"
-                />
-              </OverlayTrigger>
+                tip={getTooltipInfoFromType(reportType)}
+              />
             )}
           </div>
         </div>
@@ -180,8 +180,9 @@ const CreateReconciliationReport = ({
             <h2 className="heading--large">{displayCase(reportType)}</h2>
           )}
           <div className="form__item">
-            <label>Report Name</label>
+            <label htmlFor="reportName">Report Name</label>
             <Field
+              id="reportName"
               className="reportName"
               name="reportName"
               component={TextFormAdapter}
@@ -190,7 +191,7 @@ const CreateReconciliationReport = ({
             />
           </div>
           <div className="form__item">
-            <label>Date Range</label>
+            <span className="label">Date Range</span>
             <Field
               className="startTimestamp"
               name="startTimestamp"
@@ -207,23 +208,23 @@ const CreateReconciliationReport = ({
           </div>
           <div className="form__item form__item--tooltip">
             <span>Additional Filters</span>
-            <OverlayTrigger
+            <Tooltip
+              className="tooltip--light"
+              id="report-filter-tooltip"
               placement="right"
-              overlay={
-                <Tooltip className="tooltip">
-                  Only one of Provider, Collection ID, or Granule ID may be applied for each report
-                </Tooltip>
+              target={
+                <FontAwesomeIcon
+                  className="button__icon--animation"
+                  icon={faInfoCircle}
+                />
               }
-            >
-              <FontAwesomeIcon
-                className="button__icon--animation"
-                icon="info-circle"
-              />
-            </OverlayTrigger>
+              tip="Only one of Provider, Collection ID, or Granule ID may be applied for each report"
+            />
           </div>
           <div className="form__item">
-            <label>Provider</label>
+            <label htmlFor="provider">Provider</label>
             <Field
+              inputId="provider"
               className="provider"
               name="provider"
               component={SimpleDropdownAdapter}
@@ -236,8 +237,9 @@ const CreateReconciliationReport = ({
             />
           </div>
           <div className="form__item">
-            <label>Collection ID</label>
+            <label htmlFor="collectionId">Collection ID</label>
             <Field
+              inputId="collectionId"
               className="collectionId"
               name="collectionId"
               component={SimpleDropdownAdapter}
@@ -250,8 +252,9 @@ const CreateReconciliationReport = ({
             />
           </div>
           <div className="form__item">
-            <label>Granule ID</label>
+            <label htmlFor="granuleId">Granule ID</label>
             <Field
+              inputId="granuleId"
               className="granuleId"
               name="granuleId"
               component={SimpleDropdownAdapter}
@@ -270,8 +273,9 @@ const CreateReconciliationReport = ({
               results.
             </span>
             <div className="radio location">
-              <label>
+              <label htmlFor="all">
                 <Field
+                  id="all"
                   name="location"
                   component="input"
                   type="radio"
@@ -279,8 +283,9 @@ const CreateReconciliationReport = ({
                 />
                 All <i>(default)</i>
               </label>
-              <label>
+              <label htmlFor="S3">
                 <Field
+                  id="S3"
                   name="location"
                   component="input"
                   type="radio"
@@ -288,8 +293,9 @@ const CreateReconciliationReport = ({
                 />
                 S3
               </label>
-              <label>
+              <label htmlFor="CMR">
                 <Field
+                  id="CMR"
                   name="location"
                   component="input"
                   type="radio"

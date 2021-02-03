@@ -1,4 +1,4 @@
-import React, { createRef } from 'react';
+import React, { createRef, useEffect } from 'react';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import withQueryParams from 'react-router-query-params';
@@ -48,6 +48,8 @@ const Search = ({
   const searchList = get(rest[searchKey], 'list');
   const { data: searchOptions, inflight = false } = searchList || {};
 
+  useEffect(() => () => dispatch(clear(paramKey)), [clear, dispatch, paramKey]);
+
   function handleSearch(query) {
     if (query) dispatch(action(query));
     else dispatch(clear);
@@ -85,15 +87,15 @@ const Search = ({
   }
 
   return (
-    <div className="filter__item">
-      {label && <label htmlFor={formID}>{label}</label>}
+    <div>
+      {label && <label htmlFor="search" form={formID}>{label}</label>}
       <form className="search__wrapper form-group__element">
         <AsyncTypeahead
           clearButton={true}
           defaultInputValue={initialValue}
           highlightOnlyResult={true}
-          id="Search"
-          inputProps={inputProps}
+          id="search"
+          inputProps={{ id: 'search', ...inputProps }}
           isLoading={inflight}
           labelKey={labelKey}
           onChange={handleChange}

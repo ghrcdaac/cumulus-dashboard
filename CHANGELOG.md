@@ -7,6 +7,171 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## [v4.0.0] - 2021-01-13
+
+### Fixed
+- **CUMULUS-1765**
+  - Update 'Errors' tile Kibana link to reflect 'failed' granules and datepicker
+  - Update 'Logs' Kibana link to reflect datepicker
+
+- **CUMULUS-2069**
+  - Standardize UI button groups
+
+- **CUMULUS-2072**
+  - Add 'Show More' and 'Show Less' buttons to error report
+
+- **CUMULUS-2073**
+  - Update forms with the required indicator and description
+
+- **CUMULUS-2263**
+  - Update Pagination input to show possible page options in dropdown
+
+- **CUMULUS-2292**
+  - Increase the size of search boxes and dropdown lists
+
+- **CUMULUS-2322**
+  - Fix pagination issue causing rerender
+  - Remove `node-notifier` to remediate security vulnerability
+
+### Added
+- **CUMULUS-1763**
+  - Add tests for different dashboard configurations
+
+- **CUMULUS-1885**
+  - Expand columns to fit full content width when separator is double clicked
+
+- **CUMULUS-1895**
+  - Update execution events to display more details in modal
+
+- **CUMULUS-1949**
+  - Update modals with progress circle and alerts
+
+- **CUMULUS-2066**
+  - Add [eslint-plugin-jsx-a11y](https://www.npmjs.com/package/eslint-plugin-jsx-a11y)
+  - Add [@ace-core/react](https://www.npmjs.com/package/@axe-core/react)
+
+- **CUMULUS-2169**
+  - Add provider drop down to granule tables to filter by provider
+
+- **CUMULUS-2206**
+  - Implement lazy loading for SortableTable, Datepicker, and Sidebar
+  - Improve performance
+
+- **CUMULUS-2259**
+  - Production build now minimizes code.
+  - CI now uses Docker images from maven.earthdata.nasa.gov/ via optional environmental variable DOCKER_REPOSITORY that is placed in front of the desired images.
+
+- **CUMULUS-2270**
+  - Add provider drop down filter to Collections Overview page
+
+- **CUMULUS-2272**
+  - Add popover to granuleId and collection name table columns to view and copy full cell text
+
+- **CUMULUS-2291**
+  - Add provider filter to Granule Inventory Report
+
+### Changed
+
+- **CUMULUS-2070**
+  - Styling changes included a small css refactor.
+
+- **CUMULUS-2071**
+  - Replace the static "Granule Updates" stats on the home page with clickable cards
+  - Animate the Reconciliation Report > "Bucket Status" cards
+
+
+- **CUMULUS-2074**
+  - Update status on execution details page to be displayed as a badge
+  - Other styling tweaks on execution details page
+
+- **CUMULUS-2176**
+  - Update styles for Granule Not Found Reports
+  - Add tooltips to indicators on GNF reports
+
+- **CUMULUS-2242**
+  - Changes underlying Docker files for building dashboard bundle and dashboard image via docker.  The user interface remains the same.
+
+- **CUMULUS-2251**
+  - Add the `Granule Actions` button
+
+- **CUMULUS-2262**
+  - Revised `Delete Granule` workflow to allow removing from CMR and then deleting in one step
+
+- **CUMULUS-2269**
+  - Replace `request`/`request-promise` packages with `axios`
+
+- **CUMULUS-2271**
+  - Allow horizontal scrolling in table cells when content doesn't fit in view
+
+- **CUMULUS-2280**
+  - Continuous integration moved to earthdata bamboo.
+  - CircleCI configuration removed from project.
+
+- **CUMULUS-2325**
+  - Updates Cypress test software to 6.2.1.
+
+## [v3.0.0]
+
+### Fixed
+- **CUMULUS-2226**
+  - Loading and sorting the Failed Granules table no longer causes the screen to jump to the top of the table.
+
+- **CUMULUS-2242** and **CUMULUS-2177**
+  - building with `npm run build` will now build a distribution that can be served from behind cloudfront.
+  - Fixed bug in nginx config that allows the application to run in the continer built by `bin/build_dashboard_image.sh`.
+  - Overhauled the README.md and added a "Quick start" section
+
+- **CUMULUS-1873**
+  - Clear selected items in table when filter is applied
+
+- **CUMULUS-2249**
+  - clear infix search parameter when Search component is unmounted
+
+- **CUMULUS-2238**
+  - Fix "Date and Time Range" CSS on Chrome and Firefox. Dropdowns now display icons correctly and elements don't shift when selected.
+
+- **CUMULUS-2147**
+  - clear execution errors from granules list when async commands are completed
+
+- **CUMULUS-2135**
+  - Pagination table header UI CSS tweaks
+
+### Added
+
+- **CUMULUS-2091**
+  - Add Tooltip component
+  - Add blue tooltip for timestamp values in the table
+
+- **CUMULUS-2200**
+  - Add Granule List page. Use Granule Inventory reports for generating granule CSVs
+
+- **CUMULUS-2225**
+  - Rename "Type" column "Error Type" on Failed Granules and Home pages and allow sorting
+  - Add Error Type filter to Failed Granules page
+
+- **CUMULUS-2218**
+  - Add `Bulk Reingest` to Bulk Granules actions
+
+### Changed
+
+- **CUMULUS-2063**
+  - Updates the dashboard to use alpha version `@cumulus/api@3.0.1-alpha.2` for testing.
+  - Code changes to allow for private CMR collections to have links to the MMT.
+- **CUMULUS-2215**
+  - Omits unnecesary statistics request when building the option list of collection names on the granules page.
+- **CUMULUS-2171**
+  - Allows filtering of the Granule Inventory List CSV download based on Granule IDs, Status, and Collection.
+- **CUMULUS-2242**
+  - Moves cypress testing to run against production build in CI.
+  - renames helper scripts to better describe their purposes
+    - `./bin/build_in_docker.sh` -> `./bin/build_dashboard_via_docker.sh`
+    - `./bin/build_docker_image.sh` -> `./bin/build_dashboard_image.sh`
+
+### Removed
+ -**CUMULUS-2242**
+   - Removes unnecessary validation tests.
+   - Removes README.md documentation for NGAP Sandbox Metrics Development
+
 ## [v2.0.0]
 
 ### BREAKING CHANGES
@@ -625,7 +790,10 @@ Fix for serving the dashboard through the Cumulus API.
 
 - Versioning and changelog [CUMULUS-197] by @kkelly51
 
-[Unreleased]: https://github.com/nasa/cumulus-dashboard/compare/v1.10.0...HEAD
+[Unreleased]: https://github.com/nasa/cumulus-dashboard/compare/v4.0.0...HEAD
+[v4.0.0]: https://github.com/nasa/cumulus-dashboard/compare/v3.0.0...v4.0.0
+[v3.0.0]: https://github.com/nasa/cumulus-dashboard/compare/v2.0.0...v3.0.0
+[v2.0.0]: https://github.com/nasa/cumulus-dashboard/compare/v1.10.0...v2.0.0
 [v1.10.0]: https://github.com/nasa/cumulus-dashboard/compare/v1.9.0...v1.10.0
 [v1.9.0]: https://github.com/nasa/cumulus-dashboard/compare/v1.8.1...v1.9.0
 [v1.8.1]: https://github.com/nasa/cumulus-dashboard/compare/v1.8.0...v1.8.1

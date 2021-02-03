@@ -48,7 +48,6 @@ class ExecutionOverview extends React.Component {
   render() {
     const {
       collections,
-      dispatch,
       executions,
       queryParams,
       workflowOptions,
@@ -81,28 +80,24 @@ class ExecutionOverview extends React.Component {
           </div>
           <List
             list={list}
-            dispatch={dispatch}
             action={listExecutions}
             tableColumns={tableColumns}
             query={{ ...queryParams }}
             rowId='name'
-            sortId='createdAt'
+            initialSortId='createdAt'
             filterAction={filterExecutions}
             filterClear={clearExecutionsFilter}
           >
+            <Search
+              action={searchExecutions}
+              clear={clearExecutionsSearch}
+              paramKey="asyncOperationId"
+              label="Async Operation ID"
+              labelKey="asyncOperationId"
+              placeholder="Search"
+              searchKey="executions"
+            />
             <ListFilters>
-              <Search
-                action={searchExecutions}
-                clear={clearExecutionsSearch}
-                inputProps={{
-                  className: 'search search--medium',
-                }}
-                paramKey="asyncOperationId"
-                label="Async Operation ID"
-                labelKey="asyncOperationId"
-                placeholder="Search"
-                searchKey="executions"
-              />
               <Dropdown
                 options={statusOptions}
                 action={filterExecutions}
@@ -121,6 +116,7 @@ class ExecutionOverview extends React.Component {
                 label={'Workflow'}
                 inputProps={{
                   placeholder: 'All',
+                  className: 'dropdown--medium',
                 }}
               />
               <Dropdown
@@ -132,6 +128,7 @@ class ExecutionOverview extends React.Component {
                 label={strings.collection_id}
                 inputProps={{
                   placeholder: 'All',
+                  className: 'dropdown--large',
                 }}
               />
             </ListFilters>

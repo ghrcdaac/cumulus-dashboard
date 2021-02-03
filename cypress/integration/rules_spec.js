@@ -119,19 +119,19 @@ describe('Rules page', () => {
         .siblings()
         .find('div[class*="container"]')
         .click();
-      cy.contains('div[class*="MenuList"] > div', workflow).click();
+      cy.contains('div[id*="react-select"]', workflow).click();
       cy.get('@ruleInput')
         .contains('.dropdown__label', 'provider', { matchCase: false })
         .siblings()
         .find('div[class*="container"]')
         .click();
-      cy.contains('div[class*="MenuList"] > div', provider).click();
+      cy.contains('div[id*="react-select"]', provider).click();
       cy.get('@ruleInput')
         .contains('.dropdown__label', 'collection', { matchCase: false })
         .siblings()
         .find('div[class*="container"]')
         .click();
-      cy.contains('div[class*="MenuList"] > div', collection).click();
+      cy.contains('div[id*="react-select"]', collection).click();
 
       cy.get('@ruleInput')
         .contains('.form__textarea', 'Optional Meta Data For The Rule');
@@ -146,13 +146,13 @@ describe('Rules page', () => {
         .siblings()
         .find('div[class*="container"]')
         .click();
-      cy.contains('div[class*="MenuList"] > div', 'onetime').click();
+      cy.contains('div[id*="react-select"]', 'onetime').click();
       cy.get('@ruleInput')
         .contains('.dropdown__label', 'state', { matchCase: false })
         .siblings()
         .find('div[class*="container"]')
         .click();
-      cy.contains('div[class*="MenuList"] > div', 'ENABLED').click();
+      cy.contains('div[id*="react-select"]', 'ENABLED').click();
 
       cy.contains('form button', 'Submit').click();
       const errorMessage = 'Please review the following fields and submit again: \'Optional Meta Data For The Rule\'';
@@ -285,6 +285,7 @@ describe('Rules page', () => {
     });
 
     it('deleting a rule should remove it from the list', () => {
+      cy.intercept('DELETE', '/rules/MOD09GK_TEST_kinesisRule').as('deleteRule');
       cy.visit('/rules');
       cy.contains('.table .tr', testRuleName)
         .within(() => {
@@ -297,29 +298,29 @@ describe('Rules page', () => {
         .get('button')
         .contains('Confirm')
         .click();
+      cy.wait('@deleteRule');
+      cy.get('.modal .button--cancel').click();
       cy.contains('.table .tr a', testRuleName)
         .should('not.exist');
       cy.task('resetState');
     });
 
     it('Should trigger workflow when a rule is rerun', () => {
-      cy.server();
-      cy.route('PUT', '/rules/MOD09GK_TEST_kinesisRule', 'fixtures:rule-success.json').as('putRule');
+      cy.intercept('PUT', '/rules/MOD09GK_TEST_kinesisRule', { fixtures: 'rule-success.json' }).as('putRule');
       cy.visit('/rules/rule/MOD09GK_TEST_kinesisRule');
       cy.get('.dropdown__options__btn').click();
       cy.get('.dropdown__menu').contains('Rerun').click();
       cy.get('.button--submit').click();
+      cy.wait('@putRule');
+      cy.get('.button--cancel').click();
       cy.get('.modal-content').should('not.be', 'visible');
     });
 
     it('Should display error when a rule fails to rerun.', () => {
-      cy.server();
-      cy.route({
-        method: 'PUT',
-        url: '/rules/MOD09GK_TEST_kinesisRule',
-        status: 503,
-        response: 'fixtures:rule-error.json'
-      }).as('putRule');
+      cy.intercept(
+        { method: 'PUT', url: '/rules/MOD09GK_TEST_kinesisRule' },
+        { fixture: 'rule-error.json', statusCode: 503 }
+      ).as('putRule');
       cy.visit('/rules/rule/MOD09GK_TEST_kinesisRule');
       cy.get('.dropdown__options__btn').click();
       cy.get('.dropdown__menu').contains('Rerun').click();

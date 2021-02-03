@@ -60,7 +60,7 @@ class OperationOverview extends React.Component {
   }
 
   render () {
-    const { dispatch, operations } = this.props;
+    const { operations } = this.props;
     const { list } = operations;
     const { count } = list.meta;
     const mutableList = cloneDeep(list);
@@ -89,25 +89,21 @@ class OperationOverview extends React.Component {
           </div>
           <List
             list={mutableList}
-            dispatch={dispatch}
             action={listOperations}
             tableColumns={tableColumns}
             query={this.generateQuery()}
             rowId='id'
-            sortId='createdAt'
+            initialSortId='createdAt'
             filterAction={filterOperations}
             filterClear={clearOperationsFilter}
           >
+            <Search
+              action={searchOperations}
+              clear={clearOperationsSearch}
+              labelKey="id"
+              searchKey="operations"
+            />
             <ListFilters>
-              <Search
-                action={searchOperations}
-                clear={clearOperationsSearch}
-                inputProps={{
-                  className: 'search search--medium',
-                }}
-                labelKey="id"
-                searchKey="operations"
-              />
               <Dropdown
                 options={operationStatus}
                 action={filterOperations}

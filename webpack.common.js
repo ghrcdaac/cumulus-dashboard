@@ -38,7 +38,7 @@ const CommonConfig = {
       {
         test: /\.(js|jsx)$/,
         exclude: [
-          /node_modules\/(?!(map-obj|snakecase-keys|strict-uri-encode|qs|fast-xml-parser)\/).*/,
+          /node_modules\/(?!(map-obj|snakecase-keys|strict-uri-encode|fast-xml-parser)\/).*/,
           /font-awesome.config.js/
         ],
         use: [
@@ -49,12 +49,6 @@ const CommonConfig = {
                 '@babel/preset-env',
                 '@babel/preset-react'
               ]
-            }
-          },
-          {
-            loader: 'eslint-loader',
-            options: {
-              emitWarning: true
             }
           }
         ]

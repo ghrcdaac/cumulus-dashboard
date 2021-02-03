@@ -36,7 +36,6 @@ const WorkflowOverview = ({
         </div>
         <List
           list={workflows.list}
-          dispatch={dispatch}
           action={listWorkflows}
           tableColumns={tableColumns}
           query={{ ...queryParams }}
@@ -47,9 +46,6 @@ const WorkflowOverview = ({
             <Search
               action={searchWorkflows}
               clear={clearWorkflowsSearch}
-              inputProps={{
-                className: 'search search--small',
-              }}
               label="Search"
               labelKey="name"
               placeholder="Workflow Name"

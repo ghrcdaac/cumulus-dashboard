@@ -1,25 +1,30 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 
-import { nullValue, dateOnly, collectionNameVersion } from '../format';
+import { nullValue, dateOnly, collectionNameVersion, IndicatorWithTooltip } from '../format';
 import { getReconciliationReport, deleteReconciliationReport, listReconciliationReports } from '../../actions';
 import { getPersistentQueryParams } from '../url-helper';
+import { downloadFile } from '../download-file';
 
-export const tableColumns = ({ dispatch }) => ([
+export const tableColumns = ({ dispatch, isGranules, query }) => ([
   {
     Header: 'Name',
     accessor: 'name',
     Cell: ({ cell: { value }, row: { original: { type } } }) => { // eslint-disable-line react/prop-types
       const link = (location) => ({ pathname: `/reconciliation-reports/report/${value}`, search: getPersistentQueryParams(location) });
-      return (type !== 'Internal')
-        ? <Link to={link} >{value}</Link>
-        : <Link to={link} onClick={(e) => handleDownloadClick(e, value, dispatch)}>{value}</Link>;
+      switch (type) {
+        case 'Internal':
+          return <Link to={link} onClick={(e) => handleDownloadClick(e, value, dispatch)}>{value}</Link>;
+        case 'Granule Inventory':
+          return <Link to={link} onClick={(e) => handleCsvDownloadClick(e, value, dispatch)}>{value}</Link>;
+        default:
+          return <Link to={link} >{value}</Link>;
+      }
     }
-  },
-  {
+  }, ...(!isGranules ? [{
     Header: 'Report Type',
     accessor: 'type'
-  },
+  }] : []),
   {
     Header: 'Status',
     accessor: 'status'
@@ -30,23 +35,29 @@ export const tableColumns = ({ dispatch }) => ([
     Cell: ({ cell: { value } }) => dateOnly(value)
   },
   {
-    Header: 'Download Report',
+    Header: `Download ${isGranules ? 'List' : 'Report'}`,
     id: 'download',
     accessor: 'name',
     Cell: ({ cell: { value } }) => (// eslint-disable-line react/prop-types
-      <button className='button button__row button__row--download'
-        onClick={(e) => handleDownloadClick(e, value, dispatch)}
+      <button
+        aria-label="Download Report"
+        className='button button__row button__row--download'
+        onClick={(e) => (isGranules
+          ? handleCsvDownloadClick(e, value, dispatch)
+          : handleDownloadClick(e, value, dispatch))}
       />
     ),
     disableSortBy: true
   },
   {
-    Header: 'Delete Report',
+    Header: `Delete ${isGranules ? 'List' : 'Report'}`,
     id: 'delete',
     accessor: 'name',
     Cell: ({ cell: { value } }) => ( // eslint-disable-line react/prop-types
-      <button className='button button__row button__row--delete'
-        onClick={(e) => handleDeleteClick(e, value, dispatch)}
+      <button
+        aria-label="Delete Report"
+        className='button button__row button__row--delete'
+        onClick={(e) => handleDeleteClick(e, value, dispatch, query)}
       />
     ),
     disableSortBy: true
@@ -57,20 +68,24 @@ const handleDownloadClick = (e, reportName, dispatch) => {
   e.preventDefault();
   dispatch(getReconciliationReport(reportName)).then((response) => {
     const { data } = response;
-    const jsonHref = `data:text/json;charset=utf-8,${encodeURIComponent(JSON.stringify(data))}`;
-    const link = document.createElement('a');
-    link.setAttribute('download', `${reportName}.json`);
-    link.href = jsonHref;
-    document.body.appendChild(link);
-    link.click();
-    link.parentNode.removeChild(link);
+    const url = `data:text/json;charset=utf-8,${encodeURIComponent(JSON.stringify(data))}`;
+    downloadFile(url, `${reportName}.json`);
   });
 };
 
-const handleDeleteClick = (e, value, dispatch) => {
+const handleCsvDownloadClick = (e, reportName, dispatch) => {
   e.preventDefault();
-  dispatch(deleteReconciliationReport(value)).then(() => {
-    dispatch(listReconciliationReports());
+  dispatch(getReconciliationReport(reportName)).then((response) => {
+    const { data } = response;
+    const { url } = data;
+    if (url && window && !window.Cypress) window.open(url);
+  });
+};
+
+const handleDeleteClick = (e, value, dispatch, query) => {
+  e.preventDefault();
+  dispatch(deleteReconciliationReport(value)).then((response) => {
+    dispatch(listReconciliationReports(query));
   });
 };
 
@@ -168,25 +183,6 @@ export const tableColumnsGranules = [
   }
 ];
 
-const getIndicatorColor = (prop) => {
-  let indicatorColor = '';
-  switch (prop) {
-    case 'missing':
-      indicatorColor = 'orange';
-      break;
-    case 'notFound':
-      indicatorColor = 'failed';
-      break;
-    case false:
-      indicatorColor = 'failed';
-      break;
-    default:
-      indicatorColor = 'success';
-      break;
-  }
-  return indicatorColor;
-};
-
 export const tableColumnsGnf = [
   {
     Header: 'Collection ID',
@@ -209,8 +205,8 @@ export const tableColumnsGnf = [
   {
     Header: 'S3',
     id: 's3',
-    Cell: ({ row: { original: { s3 } } }) => ( // eslint-disable-line react/prop-types
-      <span className={`status-indicator status-indicator--${getIndicatorColor(s3)}`}></span>
+    Cell: ({ row: { original: { s3 }, values: { granuleId } } }) => ( // eslint-disable-line react/prop-types
+      <IndicatorWithTooltip granuleId={granuleId} repo='s3' value={s3} />
     ),
     width: 50,
   },
@@ -221,17 +217,17 @@ export const tableColumnsGnf = [
   // },
   {
     Header: 'Cumulus',
-    id: 'Cumulus',
-    Cell: ({ row: { original: { cumulus } } }) => ( // eslint-disable-line react/prop-types
-      <span className={`status-indicator status-indicator--${getIndicatorColor(cumulus)}`}></span>
+    id: 'cumulus',
+    Cell: ({ row: { original: { cumulus }, values: { granuleId } } }) => ( // eslint-disable-line react/prop-types
+      <IndicatorWithTooltip granuleId={granuleId} repo='cumulus' value={cumulus} />
     ),
     width: 50,
   },
   {
     Header: 'CMR',
     id: 'cmr',
-    Cell: ({ row: { original: { cmr } } }) => ( // eslint-disable-line react/prop-types
-      <span className={`status-indicator status-indicator--${getIndicatorColor(cmr)}`}></span>
+    Cell: ({ row: { original: { cmr }, values: { granuleId } } }) => ( // eslint-disable-line react/prop-types
+      <IndicatorWithTooltip granuleId={granuleId} repo='cmr' value={cmr} />
     ),
     width: 50,
   },

@@ -1,22 +1,27 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, lazy, Suspense } from 'react';
 import PropTypes from 'prop-types';
 import { Helmet } from 'react-helmet';
 import { get } from 'object-path';
 import { connect } from 'react-redux';
 import { withRouter, Redirect, Route, Switch } from 'react-router-dom';
 import withQueryParams from 'react-router-query-params';
-import Sidebar from '../Sidebar/sidebar';
 import { getCount, listGranules } from '../../actions';
 import { strings } from '../locale';
 import AllGranules from './list';
-import DatePickerHeader from '../DatePickerHeader/DatePickerHeader';
 import GranuleOverview from './granule';
 import GranulesOverview from './overview';
+import ReconciliationReportList from '../ReconciliationReports/list';
+import DatePickerHeader from '../DatePickerHeader/DatePickerHeader';
 import { filterQueryParams } from '../../utils/url-helper';
+import Loading from '../LoadingIndicator/loading-indicator';
+
+const Sidebar = lazy(() => import('../Sidebar/sidebar'));
 
 const Granules = ({ dispatch, location, queryParams, stats }) => {
   const { pathname } = location;
-  const count = get(stats, 'count.sidebar.granules.count');
+  const granulesCount = get(stats, 'count.sidebar.granules.count') || [];
+  const reportCount = get(stats, 'count.sidebar.reconciliationReports.count') || [];
+  const count = [...granulesCount, ...reportCount];
   const filteredQueryParams = filterQueryParams(queryParams);
 
   function query() {
@@ -33,6 +38,16 @@ const Granules = ({ dispatch, location, queryParams, stats }) => {
     );
   }, [dispatch]);
 
+  useEffect(() => {
+    dispatch(
+      getCount({
+        type: 'reconciliationReports',
+        field: 'type',
+        sidebarCount: true
+      })
+    );
+  }, [dispatch]);
+
   return (
     <div className="page__granules">
       <Helmet>
@@ -41,7 +56,9 @@ const Granules = ({ dispatch, location, queryParams, stats }) => {
       <DatePickerHeader onChange={query} heading={strings.granules} />
       <div className="page__content">
         <div className="wrapper__sidebar">
-          <Sidebar currentPath={pathname} count={count} location={location} />
+          <Suspense fallback={<Loading/>}>
+            <Sidebar currentPath={pathname} count={count} location={location} />
+          </Suspense>
           <div className="page__content--shortened">
             <Switch>
               <Route
@@ -74,6 +91,12 @@ const Granules = ({ dispatch, location, queryParams, stats }) => {
                 path="/granules/failed"
                 render={(props) => (
                   <AllGranules queryParams={filteredQueryParams} {...props} />
+                )}
+              />
+              <Route
+                path="/granules/lists"
+                render={(props) => (
+                  <ReconciliationReportList queryParams={filteredQueryParams} {...props} />
                 )}
               />
               <Redirect

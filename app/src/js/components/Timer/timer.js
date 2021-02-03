@@ -31,9 +31,8 @@ class Timer extends React.Component {
   }
 
   componentDidUpdate(prevProps) {
-    if (
-      JSON.stringify(prevProps.config) !== JSON.stringify(this.props.config) ||
-      (this.props.reload && prevProps.reload !== this.props.reload) ||
+    if (!isEqual(prevProps.config, this.props.config) ||
+      (this.props.reload && (prevProps.reload !== this.props.reload)) ||
       !isEqual(prevProps.datepicker, this.props.datepicker)
     ) {
       this.refreshTimer(this.props.config);
@@ -107,6 +106,9 @@ class Timer extends React.Component {
           data-cy="refreshTimer"
           className="form__element__refresh"
           onClick={() => this.refreshTimer(this.props.config)}
+          role="button"
+          tabIndex="0"
+          aria-label="Refresh Timer"
         ></span>
         <span data-cy="startStopLabel" className="form-group__updating">
           {running ? `Next update in: ${seconds}` : 'Update'}
@@ -115,6 +117,8 @@ class Timer extends React.Component {
           data-cy="toggleTimer"
           className="metadata__updated form__element__clickable"
           onClick={this.toggle}
+          role="button"
+          tabIndex="0"
         >
           {running ? 'Stop automatic updates' : 'Start automatic updates'}
         </span>

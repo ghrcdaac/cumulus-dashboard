@@ -79,13 +79,12 @@ const ActivePdrs = ({ dispatch, location, pdrs, queryParams }) => {
         </div>
         <List
           list={list}
-          dispatch={dispatch}
           action={listPdrs}
           tableColumns={view === 'failed' ? errorTableColumns : tableColumns}
           query={query}
           bulkActions={generateBulkActions()}
           rowId="pdrName"
-          sortId="timestamp"
+          initialSortId="timestamp"
           filterAction={filterPdrs}
           filterClear={clearPdrsFilter}
         >
@@ -93,9 +92,6 @@ const ActivePdrs = ({ dispatch, location, pdrs, queryParams }) => {
             <Search
               action={searchPdrs}
               clear={clearPdrsSearch}
-              inputProps={{
-                className: 'search search--large',
-              }}
               labelKey="pdrName"
               searchKey="pdrs"
             />

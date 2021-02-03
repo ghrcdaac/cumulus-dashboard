@@ -2,15 +2,17 @@ version: "3"
 services:
   e2e:
     # must be run in conjunction with the docker-compose stack.
-    image: cypress/included:5.2.0
+    image: ${DOCKER_REPOSITORY}cypress/included:6.2.1
     network_mode: "service:shim"
     entrypoint: [ "./localAPI/wait-for-dashboard.sh", "npm", "run", "cypress-ci"]
     working_dir:
       /cumulus-dashboard
     volumes:
-      - ../:/cumulus-dashboard:cached
+      - ../:/cumulus-dashboard
     environment:
       - CYPRESS_TESTING=true
       - NODE_ENV=test
       - LOCALSTACK_HOST=localhost
       - LOCAL_ES_HOST=localhost
+    # cargo cult guesses from https://github.com/cypress-io/cypress/issues/350
+    shm_size: '512MB'
