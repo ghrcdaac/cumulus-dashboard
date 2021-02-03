@@ -39,7 +39,7 @@ do
 
 ./bin/build_dashboard_via_docker.sh
 aws s3 sync dist  s3://"$DASHBOARD_BUCKET"
-docker rm dashboard-build:${TAG}
+docker rmi dashboard-build:${TAG}
 
 done
 exit 0
