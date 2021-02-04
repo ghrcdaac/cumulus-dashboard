@@ -17,7 +17,7 @@ secret_keys=( $bamboo_AWS_SIT_SECRET_ACCESS_KEY $bamboo_AWS_UAT_SECRET_ACCESS_KE
 api_root=( $bamboo_CUMULUS_BACKEND_SIT $bamboo_CUMULUS_BACKEND_UAT $bamboo_CUMULUS_BACKEND_PROD )
 dashboard_bucket=( $bamboo_DASHBOARD_BUCKET_SIT $bamboo_DASHBOARD_BUCKET_UAT $bamboo_DASHBOARD_BUCKET_PROD)
 envs=( sit uat prod)
-envs_index=( 0 ) #1 2 )
+envs_index=( 0 1 2 )
 
 #Maybe used for ELK
 # export ESROOT=
