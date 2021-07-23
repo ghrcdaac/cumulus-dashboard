@@ -6,13 +6,14 @@ services:
       - serve_api
     network_mode: "service:shim"
     command:
-      bash -c "npm rebuild node-sass && npm run build && npm run serve:prod"
+      bash -c "npm run build && npm run serve:prod"
     working_dir:
       /cumulus-dashboard
     volumes:
       - ../:/cumulus-dashboard
     environment:
       - APIROOT=http://localhost:5001
+      - ENABLE_RECOVERY=true
       - ESROOT=http://example.com
       - HIDE_PDR=false
       - DAAC_NAME=local

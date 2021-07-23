@@ -1,7 +1,7 @@
 {
     "process": "modis",
     "granuleIdExtraction": "(TESTCOLLECTION\\..*)(\\.hdf|\\.cmr|_ndvi\\.jpg)",
-    "version": "006",
+    "version": "Test/006",
     "createdAt": 1537830419503,
     "name": "TESTCOLLECTION",
     "reportToEms": true,

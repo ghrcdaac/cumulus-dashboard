@@ -44,7 +44,7 @@ export const tableColumns = [
   {
     Header: 'Status',
     accessor: 'status',
-    width: 100,
+    width: 110,
     Cell: ({ cell: { value } }) => <Link to={(location) => ({ pathname: `/granules/${value}`, search: getPersistentQueryParams(location) })} className={`granule__status granule__status--${value}`}>{displayCase(value)}</Link> // eslint-disable-line react/prop-types
   },
   {
@@ -73,6 +73,13 @@ export const tableColumns = [
     Cell: ({ cell: { value } }) => providerLink(value)
   },
   {
+    Header: 'Recovery',
+    accessor: (row) => (row.recoveryStatus ? displayCase(row.recoveryStatus) : row.recoveryStatus),
+    id: 'recoveryStatus',
+    disableSortBy: true,
+    width: 110,
+  },
+  {
     Header: 'Execution',
     accessor: 'execution',
     Cell: ({ cell: { value } }) => ( // eslint-disable-line react/prop-types
@@ -93,6 +100,8 @@ export const tableColumns = [
     id: 'timestamp'
   }
 ];
+
+export const defaultHiddenColumns = ['recoveryStatus'];
 
 export const errorTableColumns = [
   {

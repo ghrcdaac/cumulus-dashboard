@@ -1,16 +1,19 @@
-import React, { useState, useEffect, lazy, Suspense } from 'react';
+import React, { useState, useEffect, lazy, Suspense, useCallback } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import withQueryParams from 'react-router-query-params';
 import isNil from 'lodash/isNil';
 import isEqual from 'lodash/isEqual';
 import omitBy from 'lodash/omitBy';
+import noop from 'lodash/noop';
 import ErrorReport from '../Errors/report';
 import Loading from '../LoadingIndicator/loading-indicator';
 import Pagination from '../Pagination/pagination';
 // Lodash
 import ListActions from '../ListActions/ListActions';
 import TableHeader from '../TableHeader/table-header';
+import ListFilters from '../ListActions/ListFilters';
+import TableFilters from './TableFilters';
 
 const SortableTable = lazy(() => import('../SortableTable/SortableTable'));
 
@@ -27,6 +30,7 @@ const List = ({
   filterAction,
   filterClear,
   groupAction,
+  initialHiddenColumns = [],
   initialSortId,
   list,
   onSelect,
@@ -34,6 +38,7 @@ const List = ({
   queryParams,
   rowId,
   tableColumns,
+  toggleColumnOptionsAction,
 }) => {
   const { data: listData, error: listError, inflight: listInflight, meta } = list;
   const { count, limit } = meta;
@@ -52,6 +57,10 @@ const List = ({
   const [bulkActionMeta, setBulkActionMeta] = useState({
     completedBulkActions: 0,
     bulkActionError: null,
+  });
+  const [toggleColumnOptions, setToggleColumnOptions] = useState({
+    onChange: noop,
+    hiddenColumns: initialHiddenColumns,
   });
 
   const { bulkActionError, completedBulkActions } = bulkActionMeta;
@@ -85,6 +94,13 @@ const List = ({
     setClearSelected(true);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [JSON.stringify(queryFilters)]);
+
+  useEffect(() => {
+    if (typeof toggleColumnOptionsAction === 'function') {
+      const allColumns = tableColumns.map((column) => column.id || column.accessor);
+      dispatch(toggleColumnOptionsAction(toggleColumnOptions.hiddenColumns, allColumns));
+    }
+  }, [dispatch, tableColumns, toggleColumnOptions.hiddenColumns, toggleColumnOptionsAction]);
 
   function queryNewPage(newPage) {
     setPage(newPage);
@@ -154,6 +170,10 @@ const List = ({
     );
   }
 
+  const getToggleColumnOptions = useCallback((newOptions) => {
+    setToggleColumnOptions(newOptions);
+  }, []);
+
   return (
     <>
       <ListActions
@@ -168,6 +188,9 @@ const List = ({
         selected={selected}
       >
         {children}
+        <ListFilters>
+          <TableFilters columns={tableColumns} {...toggleColumnOptions} />
+        </ListFilters>
       </ListActions>
       <div className="list-view">
         {listInflight && <Loading />}
@@ -194,10 +217,12 @@ const List = ({
               onSelect={updateSelection}
               changeSortProps={queryNewSort}
               clearSelected={clearSelected}
+              initialHiddenColumns={initialHiddenColumns}
               initialSortId={initialSortId}
               // if there's an initialSortId, it means the first fetch request for the list should be sorted
               // according to that id, and therefore we are using sever-side/manual sorting
               shouldManualSort={!!initialSortId}
+              getToggleColumnOptions={getToggleColumnOptions}
             />
           </Suspense>
           <Pagination
@@ -225,10 +250,12 @@ List.propTypes = {
     title: PropTypes.string,
     description: PropTypes.string,
   }),
+  initialHiddenColumns: PropTypes.array,
   initialSortId: PropTypes.string,
   list: PropTypes.object,
   query: PropTypes.object,
   rowId: PropTypes.any,
+  toggleColumnOptionsAction: PropTypes.func,
   tableColumns: PropTypes.array,
   onSelect: PropTypes.func,
   queryParams: PropTypes.object,

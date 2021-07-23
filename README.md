@@ -18,6 +18,7 @@ $ nvm use
 - [Run the dashboard](#run-the-dashboard)
 - [Deployment](#deployment)
 - [Testing](#testing)
+- [Create a Dashboard Release](#create-a-dashboard-release)
 
 
 Other pages:
@@ -80,18 +81,18 @@ Set the environment and build the dashboard with these commands:
   $ source production.env && ./bin/build_dashboard_via_docker.sh
 ```
 
-This creates the compiled dashboard in the `./dist` directory. You can now deploy this directory to AWS behind [CloudFront](https://aws.amazon.com/cloudfront/).  If you are in NGAP, follow the instructions for "Request Public or Protected Access to the APIs and Dashboard" on the earthdata wiki page [Using Cumulus with Private APIs](https://wiki.earthdata.nasa.gov/display/CUMULUS/Cumulus+Deployments+in+NGAP).
+This script uses Docker Compose to build and copy the a compiled dashboard into the `./dist` directory. You can now deploy this directory to AWS behind [CloudFront](https://aws.amazon.com/cloudfront/).  If you are in NGAP, follow the instructions for "Request Public or Protected Access to the APIs and Dashboard" on the earthdata wiki page [Using Cumulus with Private APIs](https://wiki.earthdata.nasa.gov/display/CUMULUS/Cumulus+Deployments+in+NGAP).
 
 
 ### Run the dashboard locally via Docker Image
 
-Once you have a built a dashboard and the contents are in the `./dist` directory, you can create a Docker container that will serve the dashboard behind a simple nginx configuration. Having a runnable Docker image is useful for testing a build before deployment or for NGAP Sandbox environments, where if you configure your computer to [access Cumulus APIs via SSM](https://wiki.earthdata.nasa.gov/display/CUMULUS/Accessing+Cumulus+APIs+via+SSM), you can run the dashboard container locally against the live Sandbox Cumulus API.
+You can also create a Docker container that will serve the dashboard behind a simple nginx configuration. Having a runnable Docker image is useful for testing a build before deployment or for NGAP Sandbox environments, where if you configure your computer to [access Cumulus APIs via SSM](https://wiki.earthdata.nasa.gov/display/CUMULUS/Accessing+Cumulus+APIs+via+SSM), you can run the dashboard container locally against the live Sandbox Cumulus API.
 
-The script `./bin/build_dashboard_image.sh` takes a pre-built dashboard in the `./dist` directly and packages it in a Docker container behind a basic nginx configuration. The script takes one optional parameter, the tag to name the generated image which defaults to cumulus-dashboard:latest.
+The script `./bin/build_dashboard_image.sh` will build a docker image containing the dashboard bundle served behind a basic [nginx](https://www.nginx.com/) configuration. The script takes one optional parameter, the tag to name the generated image which defaults to cumulus-dashboard:latest.  The same customizations as described in the [previous section](#build-the-dashboard-using-docker-and-docker-compose) are available to configure your dashboard.
 
 Example of building and running the project in Docker:
 ```bash
-  $ ./bin/build_dashboard_image.sh cumulus-dashboard:production-1
+  $ source production.env && ./bin/build_dashboard_image.sh cumulus-dashboard:production-1
 ```
 
 That command builds a Docker image with the name `cumulus-dashboard` and tag `production-1`. This image can be run in Docker to serve the Dashboard.
@@ -208,7 +209,7 @@ Serve the cumulus API (separate terminal)
 
 Serve the dashboard web application (another terminal)
 ```bash
-  $ [HIDE_PDR=false SHOW_DISTRIBUTION_API_METRICS=true ESROOT=http://example.com APIROOT=http://localhost:5001] npm run serve
+  $ [HIDE_PDR=false SHOW_DISTRIBUTION_API_METRICS=true ENABLE_RECOVERY=true ESROOT=http://example.com APIROOT=http://localhost:5001] npm run serve
 ```
 
 If you're just testing dashboard code, you can generally run all of the above commands as a single docker-compose stack.
@@ -333,7 +334,7 @@ The `master` branch is the branch where the source code of HEAD always reflects 
 
 When the source code in the develop branch reaches a stable point and is ready to be released, all of the changes should be merged back into master and then tagged with a release number.
 
-## How to release
+## Create a Dashboard Release
 
 ### 1. Checkout `develop` branch
 
@@ -357,6 +358,8 @@ Update the CHANGELOG.md. Put a header under the 'Unreleased' section with the ne
 
 Add a link reference for the GitHub "compare" view at the bottom of the CHANGELOG.md, following the existing pattern. This link reference should create a link in the CHANGELOG's release header to changes in the corresponding release.
 
+Check to make sure there are `Breaking Changes` and `All Changes` section for the release if there are breaking changes. e.g. a new version of Cumulus API is required.
+
 ### 6. Update the version of the Cumulus API
 
 If this release corresponds to a Cumulus Core package release, update the version of `@cumulus/api` to the latest package version so that the integration tests will run against that version.
@@ -371,7 +374,7 @@ Create a PR for the `release-vX.X.X` branch against the `develop` branch. Verify
 
 ### 9. Create a pull request against the master branch
 
-Create a PR for the `develop` branch against the `master` branch. Verify that the Earthdata Bamboo CI build for the PR succeeds and then merge to `master`.
+Create a PR for the `develop` branch against the `master` branch. Verify that the Earthdata Bamboo CI build for the PR succeeds and then merge to `master`.  Do not create a squash merge, but use a merge commit.
 
 ### 10. Create a git tag for the release
 
@@ -389,14 +392,32 @@ Create and push a new git tag:
 
 Follow the [Github documentation to create a new release](https://help.github.com/articles/creating-releases/) for the dashboard using the tag that you just pushed. Make sure to use the content from the CHANGELOG for this release as the description of the release on GitHub.
 
+
 ### To sync the repo to the fork
 ```jsunicoderegexp
 
 git fetch upstream
-git merge upstream/<tag>
+git merge <tag>
 
 ```
 Where tag is the working tag example v1.10.0
 =======
+=======
+### 12. Create PR of master back into develop
+
+Create a PR for the `master` branch back into `develop` to bring the merge commit back into develop.
+
+It is likely that no branch plan will exist for the `master` branch.
+#### Create a bamboo branch plan for the release
+ - In the Cumulus Dashboard in Bamboo (<https://ci.earthdata.nasa.gov/browse/CUM-CDG>), click `Actions -> Configure Plan` in the top right.
+ - Next to `Plan branch` click the rightmost button that displays `Create Plan Branch` upon hover.
+ - Click `Create plan branch manually`.
+ - Choose Branch Name `master` and then click `create`.
+ - Verify that the build has started for this plan.
+
+
+
+
+
 <a name="bundlefootnote">1</a>: A dashboard bundle is just a ready-to-deploy compiled version of the dashboard and environment.
 
