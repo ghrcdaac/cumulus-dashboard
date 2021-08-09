@@ -16,8 +16,9 @@ access_keys=( $bamboo_AWS_SIT_ACCESS_KEY $bamboo_AWS_UAT_ACCESS_KEY $bamboo_AWS_
 secret_keys=( $bamboo_AWS_SIT_SECRET_ACCESS_KEY $bamboo_AWS_UAT_SECRET_ACCESS_KEY $bamboo_AWS_PROD_SECRET_ACCESS_KEY)
 api_root=( $bamboo_CUMULUS_BACKEND_SIT $bamboo_CUMULUS_BACKEND_UAT $bamboo_CUMULUS_BACKEND_PROD )
 dashboard_bucket=( $bamboo_DASHBOARD_BUCKET_SIT $bamboo_DASHBOARD_BUCKET_UAT $bamboo_DASHBOARD_BUCKET_PROD)
+launcpad_integration=( $bamboo_AUTH_METHOD_SIT $bamboo_AUTH_METHOD_UAT $bamboo_AUTH_METHOD_PROD)
 envs=( sit uat prod)
-envs_index=( 0 )
+envs_index=( 1 2 3 )
 
 #Maybe used for ELK
 # export ESROOT=
@@ -29,7 +30,7 @@ envs_index=( 0 )
 for i in "${envs_index[@]}"
 do
 	export APIROOT=${api_root[$i]}
-	export AUTH_METHOD=${bamboo_AUTH_METHOD_SIT:-earthdata}
+	export AUTH_METHOD=${launcpad_integration[$i]:-earthdata}
 	export LABELS=ghrc-${envs[$i]}
 	export STAGE=${envs[$i]}
 	export AWS_ACCESS_KEY_ID=${access_keys[$i]}
