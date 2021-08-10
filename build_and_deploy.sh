@@ -6,7 +6,8 @@ set -o pipefail
 
 export AWS_REGION=$bamboo_AWS_REGION
 export DAAC_NAME=${bamboo_DAAC_NAME:-ghrc}
-export SERVED_BY_CUMULUS_API=${bamboo_SERVED_BY_CUMULUS_API:-true}
+
+export SERVED_BY_CUMULUS_API_ARR=( $bamboo_SERVED_BY_CUMULUS_API_SIT $bamboo_SERVED_BY_CUMULUS_API_UAT $bamboo_SERVED_BY_CUMULUS_API_PROD )
 export ENABLE_RECOVERY=true
 export HIDE_PDR=true
 export SHOW_DISTRIBUTION_API_METRICS=false
@@ -18,7 +19,7 @@ api_root=( $bamboo_CUMULUS_BACKEND_SIT $bamboo_CUMULUS_BACKEND_UAT $bamboo_CUMUL
 dashboard_bucket=( $bamboo_DASHBOARD_BUCKET_SIT $bamboo_DASHBOARD_BUCKET_UAT $bamboo_DASHBOARD_BUCKET_PROD)
 launcpad_integration=( $bamboo_AUTH_METHOD_SIT $bamboo_AUTH_METHOD_UAT $bamboo_AUTH_METHOD_PROD)
 envs=( sit uat prod)
-envs_index=( 1 2 3 )
+envs_index=( 0 1 2 )
 
 #Maybe used for ELK
 # export ESROOT=
@@ -36,6 +37,7 @@ do
 	export AWS_ACCESS_KEY_ID=${access_keys[$i]}
 	export AWS_SECRET_ACCESS_KEY=${secret_keys[$i]}
 	export DASHBOARD_BUCKET=${dashboard_bucket[$i]}
+	export SERVED_BY_CUMULUS_API=${SERVED_BY_CUMULUS_API_ARR[$i]:-true}
 
 
 ./bin/build_dashboard_via_docker.sh
