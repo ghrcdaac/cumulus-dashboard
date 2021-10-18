@@ -1,14 +1,6 @@
 # Cumulus Dashboard
 
 Code to generate and deploy the dashboard for the Cumulus API.
-## For GHRC team eyes
-```code
-$ cp env.sh.example env.sh
-$ <Fill the redacted values>
-$ source env.sh
-$ nvm use
-# npm run serve-locally
-```
 
 ## Documentation
 
@@ -30,24 +22,32 @@ Other pages:
 
 The dashboard is populated from data retrieved from the Cumulus API. The environment for the Cumulus API must be predetermined and set before the dashboard can be built and deployed. The information needed to configure the dashboard is found in `app/src/js/config/config.js`, but it is generally preferred to set environmental variables overriding the default values during the build process.
 
-The following environment variables override the default values.
+Setting the following environment variables can override the default values.
 
 | Env Name | Description | Default |
-| -------- | ----------- | -------- |
+|----------|-------------|---------|
 | APIROOT | The API URL. This must be set by the user. | *example.com* |
-| AUTH_METHOD | The type of authorization method protecting the Cumulus API. [launchpad or earthdata] | *earthdata*  |
-| AWS\_REGION | Region in which Cumulus API is running. | *us-west-2*  |
+| AUTH_METHOD | The type of authorization method protecting the Cumulus API. [launchpad or earthdata] | *earthdata*   |
+| AWS\_REGION | Region in which Cumulus API is running. | *us-west-2*   |
 | DAAC\_NAME | An identifier: e.g. LPDAAC, | *Local* |
 | ENABLE\_RECOVERY | If true, adds recovery options to the granule and collection pages. | *false* |
-| ESROOT | \<optional\> Should point to an Elasticsearch endpoint. Must be set for distribution metrics to be displayed. | |
-| ES\_PASSWORD | \<optional\> Elasticsearch password,needed when protected by basic authorization | |
-| ES\_USER | \<optional\> Elasticsearch username, needed when protected by basic authorization | |
 | HIDE\_PDR | Whether to hide (or show) the PDR menu. | *true* |
-| KIBANAROOT | \<optional\> Should point to a Kibana endpoint. Must be set to examine distribution metrics details. | |
 | LABELS | Choose `gitc` or `daac` localization. | *daac* |
-| SHOW\_DISTRIBUTION\_API\_METRICS | \<optional\> Display metrics from Cumulus Distribution API.| *false* |
-| SHOW\_TEA\_METRICS | \<optional\> Display metrics from Thin Egress Application (TEA). | *true* |
 | STAGE | Identifier displayed at top of dashboard page: e.g. PROD, UAT | *development* |
+
+ Environment options to configure metrics displays. **All** of the below are optional configurations to display metrics on the Cumulus Dashboard.
+
+| Env Name | Description | Default |
+| -----|----|---- |
+| ESROOT | Should point to an Elasticsearch endpoint. Must be set for distribution metrics to be displayed. | |
+| ES\_PASSWORD | Elasticsearch password, needed when protected by basic authorization. | |
+| ES\_USER |  Elasticsearch username, needed when protected by basic authorization. | |
+| ES\_CLOUDWATCH\_TARGET\_PATTERN |  The Elasticsearch target pattern to find cloudwatch events. e.g. `<daac>-cloudwatch-cumulus-<env>-*` | |
+| ES\_DISTRIBUTION\_TARGET\_PATTERN | The Elasticsearch target pattern to find s3 access log distribution events. e.g. `<daac>-distribution-<env>-*` | |
+| KIBANAROOT | \<optional\>  Points to a Kibana endpoint. | |
+| SHOW\_DISTRIBUTION\_API\_METRICS | \<optional\> Display metrics from the Cumulus Distribution API. | *false* |
+| SHOW\_TEA\_METRICS | \<optional\> Display metrics from the Thin Egress Application (TEA). | *true* |
+
 
 ## Quick start
 
@@ -392,17 +392,6 @@ Create and push a new git tag:
 
 Follow the [Github documentation to create a new release](https://help.github.com/articles/creating-releases/) for the dashboard using the tag that you just pushed. Make sure to use the content from the CHANGELOG for this release as the description of the release on GitHub.
 
-
-### To sync the repo to the fork
-```jsunicoderegexp
-
-git fetch upstream
-git merge <tag>
-
-```
-Where tag is the working tag example v1.10.0
-=======
-=======
 ### 12. Create PR of master back into develop
 
 Create a PR for the `master` branch back into `develop` to bring the merge commit back into develop.
@@ -420,4 +409,3 @@ It is likely that no branch plan will exist for the `master` branch.
 
 
 <a name="bundlefootnote">1</a>: A dashboard bundle is just a ready-to-deploy compiled version of the dashboard and environment.
-

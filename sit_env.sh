@@ -1,0 +1,16 @@
+#! /bin/bash
+export BASTION_HOST=wsit_bastion
+export AWS_REGION=us-west-2
+export API_ID=2gpm2we5uk
+export STAGE=sit
+export APIROOT=https://${API_ID}.execute-api.${AWS_REGION}.amazonaws.com:8000/$STAGE/
+export AUTH_METHOD=launchpad
+export DAAC_NAME=ghrc
+export ENABLE_RECOVERY=false
+export HIDE_PDR=true
+export LABELS=daac
+export SERVED_BY_CUMULUS_API=false
+export SHOW_DISTRIBUTION_API_METRICS=true
+export SHOW_TEA_METRICS=true
+export DASHBOARD_BUCKET=ghrcsit-dashboard
+export AWS_PROFILE=WSIT
