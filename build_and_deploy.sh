@@ -19,7 +19,7 @@ api_root=( $bamboo_CUMULUS_BACKEND_SIT $bamboo_CUMULUS_BACKEND_UAT $bamboo_CUMUL
 dashboard_bucket=( $bamboo_DASHBOARD_BUCKET_SIT $bamboo_DASHBOARD_BUCKET_UAT $bamboo_DASHBOARD_BUCKET_PROD)
 launcpad_integration=( $bamboo_AUTH_METHOD_SIT $bamboo_AUTH_METHOD_UAT $bamboo_AUTH_METHOD_PROD)
 envs=( sit uat prod)
-envs_index=( 2 )
+envs_index=( 1 )
 
 #Maybe used for ELK
 # export ESROOT=
