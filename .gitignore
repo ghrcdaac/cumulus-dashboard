@@ -17,3 +17,5 @@ test/fake-api/db/*.json
 tmp/
 yarn.lock
 .*_env.sh
+launchpad.idp.xml
+*_env.sh
