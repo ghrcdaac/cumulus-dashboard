@@ -42,6 +42,13 @@ export LABELS=ghrc-${STAGE}
 # Verify the keys
 aws sts get-caller-identity
 (($? != 0)) && { printf '%s\n' "Command exited with non-zero"; exit 1; }
+envs=( APIROOT AUTH_METHOD AWS_REGION DAAC_NAME ENABLE_RECOVERY ESROOT ES_PASSWORD ES_USER HIDE_PDR KIBANAROOT SERVED_BY_CUMULUS_API SHOW_DISTRIBUTION_API_METRICS SHOW_TEA_METRICS STAGE )
+echo "**************"
+for env in "${envs[@]}"
+do
+   printf "$env=$(eval echo "\$$env") | "
+done
+echo "**************"
 
 ./bin/build_dashboard_via_docker.sh
 aws s3 sync dist  s3://"$DASHBOARD_BUCKET"
