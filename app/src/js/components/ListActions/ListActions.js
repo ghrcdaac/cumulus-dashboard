@@ -17,8 +17,8 @@ const ListActions = ({
   completedBulkActions
 }) => {
   const [actionsExpanded, setFiltersExpanded] = useState(false);
-  const hasActions = Array.isArray(bulkActions) && bulkActions.length > 0;
-  const hasGroupAction = hasActions && groupAction;
+  const hasBulkActions = Array.isArray(bulkActions) && bulkActions.length > 0;
+  const hasGroupAction = hasBulkActions && groupAction;
 
   function handleBulkActionSuccess(results, error) {
     if (typeof onBulkActionSuccess === 'function') {
@@ -37,7 +37,10 @@ const ListActions = ({
       const { Component, text } = item;
       return (
         <React.Fragment key={text || index}>
-          {Component && React.cloneElement(Component, { selected })}
+          {/* Add 'selected' prop to Component if the element doesn't have this property already.
+          Component like BulkGranule has `selected` prop which is an array of objects, `selected` here
+          is an array of string */}
+          {Component && React.cloneElement(Component, Component.props.selected === undefined && { selected })}
           {!Component &&
             <BatchAsyncCommand
               dispatch={dispatch}
@@ -50,7 +53,7 @@ const ListActions = ({
               getModalOptions={item.getModalOptions}
               onSuccess={handleBulkActionSuccess}
               onError={handleBulkActionError}
-              selected={selected}
+              selected={item.selected || selected}
               className={item.className || ''}
             />
           }
@@ -84,13 +87,13 @@ const ListActions = ({
             </div>
           </Collapse>
         </div>
-        <Timer
-          noheader={!hasActions}
+        {action && <Timer
+          noheader={!hasBulkActions}
           dispatch={dispatch}
           action={action}
           config={queryConfig}
           reload={completedBulkActions}
-        />
+        />}
       </>
     );
   }
@@ -98,24 +101,24 @@ const ListActions = ({
   function renderActions() {
     return (
       <div className='list-actions'>
-        {hasActions && (
+        {hasBulkActions && (
           <div className='form--controls'>
             {listBulkActions()}
           </div>
         )}
-        <Timer
-          noheader={!hasActions}
+        {action && <Timer
+          noheader={!hasBulkActions}
           dispatch={dispatch}
           action={action}
           config={queryConfig}
           reload={completedBulkActions}
-        />
+        />}
       </div>
     );
   }
 
   return (
-    <div className={`list-action-wrapper${!hasActions || !children ? ' no-actions' : ''}`}>
+    <div className={`list-action-wrapper${!hasBulkActions || !children ? ' no-actions' : ''}`}>
       {children}
       {hasGroupAction && renderGroupActions()}
       {!hasGroupAction && renderActions()}
