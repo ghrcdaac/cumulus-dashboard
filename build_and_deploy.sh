@@ -13,13 +13,18 @@ export HIDE_PDR=true
 export SHOW_DISTRIBUTION_API_METRICS=false
 export SHOW_TEA_METRICS=true
 export TAG=${TAG:-latest}
-access_keys=( $bamboo_AWS_SIT_ACCESS_KEY $bamboo_AWS_UAT_ACCESS_KEY $bamboo_AWS_PROD_ACCESS_KEY)
-secret_keys=( $bamboo_AWS_SIT_SECRET_ACCESS_KEY $bamboo_AWS_UAT_SECRET_ACCESS_KEY $bamboo_AWS_PROD_SECRET_ACCESS_KEY)
-api_root=( $bamboo_CUMULUS_BACKEND_SIT $bamboo_CUMULUS_BACKEND_UAT $bamboo_CUMULUS_BACKEND_PROD )
-dashboard_bucket=( $bamboo_DASHBOARD_BUCKET_SIT $bamboo_DASHBOARD_BUCKET_UAT $bamboo_DASHBOARD_BUCKET_PROD)
-launcpad_integration=( $bamboo_AUTH_METHOD_SIT $bamboo_AUTH_METHOD_UAT $bamboo_AUTH_METHOD_PROD)
-envs=( sit uat prod)
-envs_index=( 2 )
+export STAGE=$(echo ${bamboo_DEPLOY_TO:-sit} | tr "[a-z]" "[A-Z]")
+export GLOBAL_ACCESS_KEY_ID=bamboo_AWS_${STAGE}_ACCESS_KEY
+export GLOBAL_SECRET_ACCESS_KEY=bamboo_AWS_${STAGE}_SECRET_ACCESS_KEY
+export GLOBAL_API_ROOT=bamboo_CUMULUS_BACKEND_${STAGE}
+export GLOBAL_DASHBOARD_BUCKET=bamboo_DASHBOARD_BUCKET_${STAGE}
+export GLOBAL_LAUNCHPAD_INTEGRATION=bamboo_AUTH_METHOD_${STAGE}
+
+export AWS_ACCESS_KEY_ID=$(eval echo "\$$GLOBAL_ACCESS_KEY_ID")
+export AWS_SECRET_ACCESS_KEY=$(eval echo "\$$GLOBAL_SECRET_ACCESS_KEY")
+export API_ROOT=$(eval echo "\$$GLOBAL_API_ROOT")
+export DASHBOARD_BUCKET=$(eval echo "\$$GLOBAL_DASHBOARD_BUCKET")
+export LAUNCHPAD_INTEGRATION=$(eval echo "\$$GLOBAL_LAUNCHPAD_INTEGRATION")
 
 #Maybe used for ELK
 # export ESROOT=
@@ -27,24 +32,11 @@ envs_index=( 2 )
 # export ES_USER=
 #export KIBANAROOT=
 
-
-for i in "${envs_index[@]}"
-do
-	export APIROOT=${api_root[$i]}
-	export AUTH_METHOD=${launcpad_integration[$i]:-earthdata}
-	export LABELS=ghrc-${envs[$i]}
-	export STAGE=${envs[$i]}
-	export AWS_ACCESS_KEY_ID=${access_keys[$i]}
-	export AWS_SECRET_ACCESS_KEY=${secret_keys[$i]}
-	export DASHBOARD_BUCKET=${dashboard_bucket[$i]}
-	export SERVED_BY_CUMULUS_API=${SERVED_BY_CUMULUS_API_ARR[$i]:-true}
-
-
+export AUTH_METHOD=${LAUNCHPAD_INTEGRATION:-earthdata}
+export LABELS=ghrc-${STAGE}
 ./bin/build_dashboard_via_docker.sh
 aws s3 sync dist  s3://"$DASHBOARD_BUCKET"
 docker rmi dashboard-build:${TAG}
-
-done
 exit 0
 
 
