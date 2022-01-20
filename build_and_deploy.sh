@@ -2,11 +2,8 @@
 set -o errexit
 set -o nounset
 set -o pipefail
-# Verify the keys
-aws sts get-caller-identity
-# Verify the keys
-aws sts get-caller-identity
-(($? != 0)) && { printf '%s\n' "Command exited with non-zero"; exit 1; }
+
+
 
 
 
@@ -20,6 +17,7 @@ export SHOW_TEA_METRICS=true
 export TAG=${TAG:-latest}
 export STAGE=$(echo ${bamboo_DEPLOY_TO:-sit} | tr "[a-z]" "[A-Z]")
 export GLOBAL_SERVED_BY_CUMULUS_API=bamboo_SERVED_BY_CUMULUS_API_${STAGE}
+export GLOBAL_ACCESS_KEY_ID=bamboo_AWS_${STAGE}_ACCESS_KEY
 export GLOBAL_SECRET_ACCESS_KEY=bamboo_AWS_${STAGE}_SECRET_ACCESS_KEY
 export GLOBAL_API_ROOT=bamboo_CUMULUS_BACKEND_${STAGE}
 export GLOBAL_DASHBOARD_BUCKET=bamboo_DASHBOARD_BUCKET_${STAGE}
@@ -39,6 +37,12 @@ export SERVED_BY_CUMULUS_API=$(eval echo "\$$GLOBAL_SERVED_BY_CUMULUS_API")
 
 export AUTH_METHOD=${LAUNCHPAD_INTEGRATION:-earthdata}
 export LABELS=ghrc-${STAGE}
+
+
+# Verify the keys
+aws sts get-caller-identity
+(($? != 0)) && { printf '%s\n' "Command exited with non-zero"; exit 1; }
+
 ./bin/build_dashboard_via_docker.sh
 aws s3 sync dist  s3://"$DASHBOARD_BUCKET"
 docker rmi dashboard-build:${TAG}
