@@ -2,6 +2,12 @@
 set -o errexit
 set -o nounset
 set -o pipefail
+# Verify the keys
+aws sts get-caller-identity
+# Verify the keys
+aws sts get-caller-identity
+(($? != 0)) && { printf '%s\n' "Command exited with non-zero"; exit 1; }
+
 
 
 export AWS_REGION=$bamboo_AWS_REGION
