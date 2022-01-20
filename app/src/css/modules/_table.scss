@@ -7,12 +7,13 @@
 }
 
 .table {
-  width: 100%;
-  line-height: 1.6em;
-  overflow-x: scroll;
-  border-radius: 8px 8px 0px 0px;
-  scroll-behavior: smooth;
-  // transform: translate3d(0px, -200px, 0px);
+  &:not(.sub-table) {
+    width: 100%;
+    line-height: 1.6em;
+    overflow-x: scroll;
+    border-radius: 8px 8px 0px 0px;
+    scroll-behavior: smooth;
+  }
 
   .content-fit {
     width: fit-content!important;
@@ -44,7 +45,7 @@
   }
 
   .tbody {
-    .tr {
+    & > .tr {
       border-bottom: 1px solid $lightest-grey;
       .td {
         font-size: .86em;
@@ -85,10 +86,17 @@
   }
 }
 
+.sub-table {
+  .thead .th {
+    background-color: $background-white;
+    color: $black;
+  }
+}
+
 .table__header {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-start;
   padding: 0 1em;
 
   div {
@@ -98,6 +106,10 @@
 
   .list__filters--item {
     margin: 0 .3em;
+  }
+
+  .simple-pagination {
+    padding: 20px;
   }
 
   input {
@@ -317,6 +329,13 @@
   border: 1px solid $border-grey;
   box-shadow: $shadow__default;
   border-radius: 10px;
+
+  .simple-pagination {
+    margin: initial;
+    border: initial;
+    box-shadow: initial;
+  }
+
 }
 
 .list--errors {
