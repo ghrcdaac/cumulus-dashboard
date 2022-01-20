@@ -7,14 +7,13 @@ set -o pipefail
 export AWS_REGION=$bamboo_AWS_REGION
 export DAAC_NAME=${bamboo_DAAC_NAME:-ghrc}
 
-export SERVED_BY_CUMULUS_API_ARR=( $bamboo_SERVED_BY_CUMULUS_API_SIT $bamboo_SERVED_BY_CUMULUS_API_UAT $bamboo_SERVED_BY_CUMULUS_API_PROD )
 export ENABLE_RECOVERY=true
 export HIDE_PDR=true
 export SHOW_DISTRIBUTION_API_METRICS=false
 export SHOW_TEA_METRICS=true
 export TAG=${TAG:-latest}
 export STAGE=$(echo ${bamboo_DEPLOY_TO:-sit} | tr "[a-z]" "[A-Z]")
-export GLOBAL_ACCESS_KEY_ID=bamboo_AWS_${STAGE}_ACCESS_KEY
+export GLOBAL_SERVED_BY_CUMULUS_API=bamboo_SERVED_BY_CUMULUS_API_${STAGE}
 export GLOBAL_SECRET_ACCESS_KEY=bamboo_AWS_${STAGE}_SECRET_ACCESS_KEY
 export GLOBAL_API_ROOT=bamboo_CUMULUS_BACKEND_${STAGE}
 export GLOBAL_DASHBOARD_BUCKET=bamboo_DASHBOARD_BUCKET_${STAGE}
@@ -25,7 +24,7 @@ export AWS_SECRET_ACCESS_KEY=$(eval echo "\$$GLOBAL_SECRET_ACCESS_KEY")
 export API_ROOT=$(eval echo "\$$GLOBAL_API_ROOT")
 export DASHBOARD_BUCKET=$(eval echo "\$$GLOBAL_DASHBOARD_BUCKET")
 export LAUNCHPAD_INTEGRATION=$(eval echo "\$$GLOBAL_LAUNCHPAD_INTEGRATION")
-
+export SERVED_BY_CUMULUS_API=$(eval echo "\$$GLOBAL_SERVED_BY_CUMULUS_API")
 #Maybe used for ELK
 # export ESROOT=
 # export ES_PASSWORD=
