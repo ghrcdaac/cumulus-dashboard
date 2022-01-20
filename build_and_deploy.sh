@@ -25,7 +25,7 @@ export GLOBAL_LAUNCHPAD_INTEGRATION=bamboo_AUTH_METHOD_${STAGE}
 
 export AWS_ACCESS_KEY_ID=$(eval echo "\$$GLOBAL_ACCESS_KEY_ID")
 export AWS_SECRET_ACCESS_KEY=$(eval echo "\$$GLOBAL_SECRET_ACCESS_KEY")
-export API_ROOT=$(eval echo "\$$GLOBAL_API_ROOT")
+export APIROOT=$(eval echo "\$$GLOBAL_API_ROOT")
 export DASHBOARD_BUCKET=$(eval echo "\$$GLOBAL_DASHBOARD_BUCKET")
 export LAUNCHPAD_INTEGRATION=$(eval echo "\$$GLOBAL_LAUNCHPAD_INTEGRATION")
 export SERVED_BY_CUMULUS_API=$(eval echo "\$$GLOBAL_SERVED_BY_CUMULUS_API")
@@ -48,7 +48,7 @@ for env in "${envs[@]}"
 do
    printf "$env=$(eval echo "\$$env") | "
 done
-echo "**************"
+echo "\n**************"
 
 ./bin/build_dashboard_via_docker.sh
 aws s3 sync dist  s3://"$DASHBOARD_BUCKET"
