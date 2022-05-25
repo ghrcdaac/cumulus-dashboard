@@ -1,4 +1,5 @@
 import { shouldBeRedirectedToLogin } from '../support/assertions';
+import { collectionName, collectionHrefFromId } from '../../app/src/js/utils/format';
 
 describe('Dashboard PDRs Page', () => {
   describe('When not logged in', () => {
@@ -159,8 +160,8 @@ describe('Dashboard PDRs Page', () => {
               .should('have.attr', 'href', `/providers/provider/${pdr.provider}`);
 
             cy.contains('Collection').next()
-              .contains('a', pdr.collectionId.split('___').join(' / '))
-              .should('have.attr', 'href', `/collections/collection/${pdr.collectionId.split('___').join('/')}`);
+              .contains('a', collectionName(pdr.collectionId))
+              .should('have.attr', 'href', collectionHrefFromId(pdr.collectionId));
 
             cy.contains('Execution').next()
               .contains('a', 'link')
@@ -215,8 +216,8 @@ describe('Dashboard PDRs Page', () => {
             .should('have.attr', 'href')
             .and('be.eq', `/granules/granule/${granule.granuleId}`);
           cy.get('@columns').eq(3)
-            .contains('a', granule.collectionId.split('___').join(' / '))
-            .should('have.attr', 'href', `/collections/collection/${granule.collectionId.split('___').join('/')}`);
+            .contains('a', collectionName(granule.collectionId))
+            .should('have.attr', 'href', collectionHrefFromId(granule.collectionId));
           cy.get('@columns').eq(4)
             .should('have.text', `${Number(granule.duration.toFixed(2))}s`);
           cy.get('@columns').eq(5).invoke('text')
@@ -231,6 +232,27 @@ describe('Dashboard PDRs Page', () => {
 
       cy.url().should('include', `/pdrs/pdr/${pdrName}`);
       cy.get('.heading--large').should('have.text', `PDR: ${pdrName}`);
+    });
+
+    it('Should dynamically update menu, sidbar and breadcrumb /pdrs links with latest filter criteria', () => {
+      const status = 'running';
+
+      cy.visit('/pdrs');
+
+      cy.get('#status').as('status-input');
+      cy.get('@status-input').click().type(status).type('{enter}');
+
+      cy.get('.table__main-asset > a').first().click({ force: true });
+
+      // Menu <Link>s contain correct query params
+      cy.get('nav > ul > :nth-child(8) > a')
+        .should('have.attr', 'href')
+        .and('include', `status=${status}`);
+
+      // Sidebar <Link>s contain correct query params
+      cy.get('.sidebar__nav--back')
+        .should('have.attr', 'href')
+        .and('include', `status=${status}`);
     });
   });
 });

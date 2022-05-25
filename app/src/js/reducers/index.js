@@ -6,7 +6,6 @@ import apiVersion from './api-version';
 import cmrInfo from './cmr-info';
 import collections from './collections';
 import config from './utils/config';
-import dist from './dist';
 import datepicker from './datepicker';
 import granules from './granules';
 import granulesExecutions from './granules-executions';
@@ -26,6 +25,7 @@ import reconciliationReports from './reconciliation-reports';
 import cumulusInstance from './cumulus-instance';
 import sidebar from './sidebar';
 import sorts from './sort-persist';
+import locationQueryParams from './location-query-params';
 
 const def = (state, _action) => state || {};
 
@@ -36,7 +36,6 @@ export const reducers = {
   cmrInfo,
   collections,
   config,
-  dist,
   datepicker,
   cumulusInstance,
   granules,
@@ -56,6 +55,7 @@ export const reducers = {
   rules,
   reconciliationReports,
   sorts,
+  locationQueryParams,
 };
 
 export const createRootReducer = (history) => combineReducers({
