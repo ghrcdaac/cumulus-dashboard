@@ -18,4 +18,5 @@ tmp/
 yarn.lock
 .*_env.sh
 launchpad.idp.xml
-*_env.sh
+*env.sh
+
