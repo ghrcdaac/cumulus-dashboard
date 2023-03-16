@@ -7,6 +7,43 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## [v12.0.0] - 2023-01-23
+
+## Breaking Changes
+
+This version of the dashboard requires Cumulus API >= v14.0.0
+
+### Added
+
+- **CUMULUS-2717**
+  - Added `Show/Hide Recovery Status` button to granule detail page
+- **CUMULUS-2915**
+  - Added download button to execution pages
+  - Updated dashboard to use alpha version `@cumulus/api@13.3.3-alpha.0` for testing
+  - Used npm 8.6.0
+  - Upgraded localstack to 0.12.13 to work with latest Cumulus
+  - Added action to list pages to refresh cumulus db connection
+  - Updated `git+ssh://git@` to `git+https://` for npm 8.6.0 generated package-lock.json,
+    and this is an [known issue](https://github.com/npm/cli/issues/2610) with npm 8.6.0
+
+### Changed
+
+- **CUMULUS-2763**
+  - Replaces disabled button interaction with hidden buttons for bulk actions.
+- **CUMULUS-2960**
+  - Fixed the following Axe accessibility issues:
+    + Specified title, level-one heading, and modal as main landmark on `/auth`
+    + Increased link-background contrast in the header
+    + Slight color adjustments for accessibility
+  - Updated dependencies with severe security vulnerabilities:
+    + `@cumulus/api` to `13.1.0`
+    + `moment` to `2.29.4`
+    + `terser-webpack-plugin` to `5.3.3`
+- **CUMULUS-3001**
+  - Removed `precss` dependency
+- **Snyk Security Fix**
+  - Upgraded jsonwebtoken from 8.5.1 to 9.0.0
+
 ## [v11.0.0] - 2022-04-19
 
 ## Breaking Changes
@@ -1276,7 +1313,8 @@ Fix for serving the dashboard through the Cumulus API.
 ### Added
 
 - Versioning and changelog [CUMULUS-197] by @kkelly51
-  [Unreleased]: https://github.com/nasa/cumulus-dashboard/compare/v11.0.0...HEAD
+  [Unreleased]: https://github.com/nasa/cumulus-dashboard/compare/v12.0.0...HEAD
+  [v12.0.0]: https://github.com/nasa/cumulus-dashboard/compare/v11.0.0...v12.0.0
   [v11.0.0]: https://github.com/nasa/cumulus-dashboard/compare/v10.0.0...v11.0.0
   [v10.0.0]: https://github.com/nasa/cumulus-dashboard/compare/v9.0.0...v10.0.0
   [v9.0.0]: https://github.com/nasa/cumulus-dashboard/compare/v8.0.0...v9.0.0
