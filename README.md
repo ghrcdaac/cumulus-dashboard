@@ -11,6 +11,7 @@ Code to generate and deploy the dashboard for the Cumulus API.
 - [Deployment](#deployment)
 - [Testing](#testing)
 - [Create a Dashboard Release](#create-a-dashboard-release)
+- [Create a Backport Dashboard Release](#create-a-backport-dashboard-release)
 
 
 Other pages:
@@ -32,7 +33,7 @@ Setting the following environment variables can override the default values.
 | DAAC\_NAME | An identifier: e.g. LPDAAC, | *Local* |
 | ENABLE\_RECOVERY | If true, adds recovery options to the granule and collection pages. | *false* |
 | HIDE\_PDR | Whether to hide (or show) the PDR menu. | *true* |
-| LABELS | Choose `gitc` or `daac` localization. | *daac* |
+| LABELS | Select `daac` localization. | *daac* |
 | STAGE | Identifier displayed at top of dashboard page: e.g. PROD, UAT | *development* |
 | KIBANAROOT | \<optional\>  Points to a Kibana endpoint. | |
 
@@ -43,7 +44,7 @@ Setting the following environment variables can override the default values.
 The dashboard source is available on github and can be cloned with git.
 
 ```bash
-  $ git clone https://github.com/nasa/cumulus-dashboard
+  git clone https://github.com/nasa/cumulus-dashboard
 ```
 The cloned directory `./cumulus-dashboard` will be referred as the root directory of the project and commands that are referenced in this document, should start from that directory.
 
@@ -66,7 +67,7 @@ All values are optional except `APIROOT` which must point to the Cumulus API tha
 
 Set the environment and build the dashboard with these commands:
 ```sh
-  $ source production.env && ./bin/build_dashboard_via_docker.sh
+  source production.env && ./bin/build_dashboard_via_docker.sh
 ```
 
 This script uses Docker Compose to build and copy the compiled dashboard into the `./dist` directory. You can now deploy this directory to AWS behind [CloudFront](https://aws.amazon.com/cloudfront/).  If you are in NGAP, follow the instructions for "Request Public or Protected Access to the APIs and Dashboard" on the earthdata wiki page [Using Cumulus with Private APIs](https://wiki.earthdata.nasa.gov/display/CUMULUS/Using+Cumulus+with+Private+APIs).
@@ -80,13 +81,13 @@ The script `./bin/build_dashboard_image.sh` will build a docker image containing
 
 Example of building and running the project in Docker:
 ```bash
-  $ source production.env && ./bin/build_dashboard_image.sh cumulus-dashboard:production-1
+  source production.env && ./bin/build_dashboard_image.sh cumulus-dashboard:production-1
 ```
 
 That command builds a Docker image with the name `cumulus-dashboard` and tag `production-1`. This image can be run in Docker to serve the Dashboard.
 
 ```bash
-  $ docker run --rm -it -p 3000:80 cumulus-dashboard:production-1
+  docker run --rm -it -p 3000:80 cumulus-dashboard:production-1
 ```
 In this example, the dashboard would be available at `http://localhost:3000/` in any browser.
 
@@ -96,22 +97,25 @@ In this example, the dashboard would be available at `http://localhost:3000/` in
 
 ### Build the dashboard
 
-The dashboard uses node v16.19.0. To build/run the dashboard on your local machine, install [nvm](https://github.com/creationix/nvm) and run `nvm install v16.19.0`.
+The dashboard uses node v20.12.2. To build/run the dashboard on your local machine, install [nvm](https://github.com/creationix/nvm) and run `nvm install v20.12.2`.
 
 #### install requirements
 We use npm for local package management. To install the requirements:
 ```bash
-  $ nvm use
-  $ npm ci
+  nvm use 
 ```
 
-Use `$ npm install` when package.json is updated.
+When package.json is updated.
+
+```bash
+npm install connected-react-router@6.9.3 --legacy-peer-deps
+```
 
 To build a dashboard bundle<sup>[1](#bundlefootnote)</sup>:
 
 ```bash
-  $ nvm use
-  $ [SERVED_BY_CUMULUS_API=true] [DAAC_NAME=LPDAAC] [STAGE=production] [HIDE_PDR=false] [LABELS=daac] APIROOT=https://myapi.com npm run build
+  nvm use
+  [SERVED_BY_CUMULUS_API=true] [DAAC_NAME=LPDAAC] [STAGE=production] [HIDE_PDR=false] [LABELS=daac] APIROOT=https://myapi.com npm run build
 ```
 **NOTE**: Only the `APIROOT` environment variable is required and any of the environment variables currently set are passed to the build.
 
@@ -131,10 +135,10 @@ It is possible to [serve the dashboard](https://nasa.github.io/cumulus-api/#serv
 `cumulus-dashboard` versions are distributed using tags in GitHub. You can select specific version in the following manner:
 
 ```bash
-  $ git clone https://github.com/nasa/cumulus-dashboard
-  $ cd cumulus-dashboard
-  $ git fetch origin ${tagNumber}:refs/tags/${tagNumber}
-  $ git checkout ${tagNumber}
+  git clone https://github.com/nasa/cumulus-dashboard
+  cd cumulus-dashboard
+  git fetch origin ${tagNumber}:refs/tags/${tagNumber}
+  git checkout ${tagNumber}
 ```
 
 Then follow the steps noted above to build the [dashboard locally](#build-the-dashboard) or [using Docker](#quick-start).
@@ -156,7 +160,7 @@ The dashboard should be available at `http://localhost:3000`
 To run a built dashboard, first [build the dashboard](#build-the-dashboard), then run:
 
 ```bash
-  $ npm run serve:prod
+  npm run serve:prod
 ```
 This runs a node http-server in front of whatever exists in the `./dist` directory.  It's fast, but will not pick up any changes as you are working.
 
@@ -167,7 +171,7 @@ This runs a node http-server in front of whatever exists in the `./dist` directo
 First, [build the dashboard](#build-the-dashboard). Then deploy the `./dist` folder, the dashboard bundle, to an AWS bucket.
 
 ```bash
-  $ aws s3 sync dist s3://my-bucket-to-be-used
+  aws s3 sync dist s3://my-bucket-to-be-used
 ```
 If you are not in an NGAP environment, Look at the instructions for [Hosting a static website on Amazon S3](https://docs.aws.amazon.com/AmazonS3/latest/dev/WebsiteHosting.html)
 and [configuring a bucket as a static website](https://docs.aws.amazon.com/AmazonS3/latest/dev/HowDoIWebsiteConfiguration.html).
@@ -180,40 +184,50 @@ Otherwise, follow the instructions for building and deploying the dashboard for 
 ### Unit Tests
 
 ```bash
-  $ npm run test
+  npm run test-unit-only
+```
+
+Command to run a single test script locally using Ava:
+
+```bash
+  $ npx ava test/../../test-name.js
 ```
 
 ### Integration & Validation Tests
 
 For the integration tests to work, you have to first run the localstack application, launch the localAPI and serve the dashboard first. Run the following commands in separate terminal sessions:
 
-Run background localstack application.
+Run background localstack application:
 ```bash
-  $ npm run start-localstack
+  npm run start-localstack
+```
+Note: you can also stop the localstack application as follows:
+```bash
+  npm run stop-localstack
 ```
 
 Serve the cumulus API (separate terminal)
 ```bash
-  $ npm run serve-api
+  npm run serve-api
 ```
 
 Serve the dashboard web application (another terminal)
 ```bash
-  $ [HIDE_PDR=false ENABLE_RECOVERY=true APIROOT=http://localhost:5001] npm run serve
+  [HIDE_PDR=false ENABLE_RECOVERY=true APIROOT=http://localhost:5001] npm run serve
 ```
 
 If you're just testing dashboard code, you can generally run all of the above commands as a single docker-compose stack.
 ```bash
-  $ npm run start-dashboard
+  npm run start-dashboard
 ```
-This brings up LocalStack, Elasticsearch, the Cumulus localAPI, and the dashboard.
+This brings up LocalStack, the Cumulus localAPI, and the dashboard.
 
 Run the test suite (yet another terminal window)
 ```bash
-  $ npm run cypress
+  npm run cypress
 ```
 
-When the cypress editor opens, click on `run all specs`.
+When the cypress editor opens, click on `run X integration specs`. Where X is the current number of integration specs.
 
 
 ### Local API server
@@ -222,27 +236,31 @@ For **development** and **testing** purposes only, you can run a Cumulus API loc
 
 *Important Note: These `docker compose` commands do not build distributable containers, but are a provided as testing conveniences.  The docker-compose[-\*].yml files show that they work by linking your local directories into the container.*
 
-In order to run the Cumulus API locally you must first [build the dashboard](#build-the-dashboard) and then run the containers that provide LocalStack and Elasticsearch services.
+In order to run the Cumulus API locally you must first [build the dashboard](#build-the-dashboard) and then run the containers that provide LocalStack services.
 
 These are started and stopped with the commands:
 ```bash
-  $ npm run start-localstack
-  $ npm run stop-localstack
+  npm run start-localstack
+```
+```bash
+  npm run stop-localstack
 ```
 
 After these containers are running, you can start a cumulus API locally in a terminal window `npm run serve-api`, the dashboard in another window. `[HIDE_PDR=false ENABLE_RECOVERY=true APIROOT=http://localhost:5001] npm run serve` and finally cypress in a third window. `npm run cypress`.
 
 Once the Docker app is running, If you would like to see sample data you can seed the database. This will load the same sample data into the application that is used during cypress testing.
 ```bash
-  $ npm run seed-database
+  npm run seed-database
 ```
 
 If you prefer to stand up more of the stack in Docker containers, you can include the cumulus api in the docker-compose stack. To run the Cumulus API in a Docker container, (which still leaves running the dashboard and cypress up to you), just run the `cumulusapi` service.
 
-The cumulusapi Docker service is started and stopped:
+The cumulusapi Docker service is started and stopped using the following commands:
 ```bash
-  $ npm run start-cumulusapi
-  $ npm run stop-cumulusapi
+  npm run start-localstack
+```
+```bash
+  npm run stop-localstack
 ```
 
 the start command, will exit successfully long before the stack is actually ready to run.
@@ -252,7 +270,6 @@ The output looks like this:
 > docker compose -f ./localAPI/docker-compose.yml -f ./localAPI/docker-compose-serve-api.yml up -d
 
 Creating localapi_shim_1 ... done
-Creating localapi_elasticsearch_1 ... done
 Creating localapi_localstack_1    ... done
 Creating localapi_serve_api_1     ... done
 ```
@@ -271,12 +288,15 @@ Then you can run the dashboard locally (without Docker) `[HIDE_PDR=false APIROOT
 
 The Docker compose stack also includes a command to let a developer start all development containers with a single command.
 
-Bring up and down the entire stack (the localAPI and the dashboard) with:
+Bring up the entire stack (the localAPI and the dashboard) with:
 ```bash
-  $ npm run start-dashboard
-  $ npm run stop-dashboard
+  npm run start-localstack
 ```
-This runs everything, the backing Localstack and Elasticsearch containers, the local Cumulus API and dashboard.  Edits to your code will be reflected in the running dashboard.  You can run cypress tests still with `npm run cypress`.  As a warning, this command takes a very long time to start up because the containers come up in a specific order and generally this should be reserved for use by Earthdata Bamboo or some other continuous integration service.  But, if you are using it locally, **be sure to wait until all containers are fully up** before trying to visit the dashboard which is exposed at http://localhost:3000
+Bring down the entire stack (the localAPI and the dashboard) with:
+```bash
+  npm run stop-localstack
+```
+This runs everything, the backing Localstack container, the local Cumulus API and dashboard.  Edits to your code will be reflected in the running dashboard.  You can run cypress tests still with `npm run cypress`.  As a warning, this command takes a very long time to start up because the containers come up in a specific order and generally this should be reserved for use by Earthdata Bamboo or some other continuous integration service.  But, if you are using it locally, **be sure to wait until all containers are fully up** before trying to visit the dashboard which is exposed at http://localhost:3000
 The stack is ready when the `view-docker-logs` task shows:
 ```bash
 dashboard_1      | > NODE_ENV=production http-server dist -p 3000 --proxy http://localhost:3000?
@@ -294,7 +314,7 @@ dashboard_1      | Hit CTRL-C to stop the server
 
 If something is not running correctly, or you're just interested, you can view the logs with a helper script, this will print out logs from each of the running docker containers.
 ```bash
-  $ npm run view-docker-logs
+  npm run view-docker-logs
 ```
 This can be helpful in debugging problems with the docker application.
 
@@ -309,7 +329,7 @@ ERROR: for shim  Cannot start service shim: driver failed programming external c
 
 You can run all of the cypress tests locally that Earthdata Bamboo runs with a single command:
 ```bash
-  $ npm run e2e-tests
+  npm run e2e-tests
 ```
 This stands up the entire stack as well as begins the e2e service that will run all cypress commands and report an exit code for their success or failure.  This is primarily used for CI, but can be useful to developers.
 
@@ -373,10 +393,10 @@ Push a new release tag to Github. The tag should be in the format `v1.2.3`, wher
 Create and push a new git tag:
 
 ```bash
-  $ git checkout master
-  $ git pull origin master
-  $ git tag -a v1.x.x -m "Release 1.x.x"
-  $ git push origin v1.x.x
+  git checkout master
+  git pull origin master
+  git tag -a v1.x.x -m "Release 1.x.x"
+  git push origin v1.x.x
 ```
 
 ### 11. Add the release to GitHub
@@ -394,5 +414,65 @@ It is likely that no branch plan will exist for the `master` branch.
  - Click `Create plan branch manually`.
  - Choose Branch Name `master` and then click `create`.
  - Verify that the build has started for this plan.
+
+ ## Create a Backport Dashboard Release
+
+### 1. Checkout the tag of the release we want to patch to
+
+```shell
+  git checkout vMAJOR.MINOR.PATCH
+
+e.g.:
+  git checkout v12.0.1
+```
+
+### 2. Create a new branch for the release
+
+Create a new release branch off of the tag, and name the branch `release-vMAJOR.MINOR.x` (e.g. `release-v12.0.x`).
+
+Note: If we already have the branch from prior backports, check out that branch instead of creating a new one.
+
+```shell
+  git checkout -b release-vMAJOR.MINOR.x vMAJOR.MINOR.PATCH
+
+e.g.:
+  git checkout -b release-v12.0.x v12.0.1
+```
+
+### 3. Cherry pick the commits relevant to the backport
+```shell
+  git cherry-pick [replace-with-commit-SHA]
+```
+
+### 4. Update the version number
+
+When changes are ready to be released, the version number must be updated in `package.json`.
+
+### 5. Bamboo build
+
+Commit all changes and push the release branch (e.g. `release-1.2.x`) to GitHub.
+
+Configure Bamboo to run automated tests against this branch by finding the branch plan for the release branch (`release-1.2.x`) and setting variables:
+  - `GIT_PR`: `true`
+
+### 6. Manual testing
+
+See instruction in [Create a Dashboard Release](#create-a-dashboard-release)
+
+### 7. Create a git tag for the release
+
+Push a new release tag to Github. The tag should be in the format `v1.2.3`, where `1.2.3` is the new version.  After the tag is created, you can create a new release from github.
+Create and push a new git tag:
+
+```shell
+  git tag -a v1.x.x -m "Release 1.x.x"
+  git push origin v1.x.x
+```
+
+### 8. Add the release to GitHub
+
+### 9. Merge changelog to the develop branch
+
+Create a PR that merges **ONLY** the changelog updates back to develop.
 
 <a name="bundlefootnote">1</a>: A dashboard bundle is just a ready-to-deploy compiled version of the dashboard and environment.
