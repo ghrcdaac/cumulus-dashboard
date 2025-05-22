@@ -7,7 +7,39 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
-## [v13.0.0] - 2024-02-19
+## [v13.2.0] - 2025-05-14
+
+### Added
+
+- **CUMULUS-4048**
+  - Added a session timeout warning modal that pops up five minutes before the session expires
+- **CUMULUS-4088**
+  - Added sortKey=[-timestamp] and set no limit to queries to get collection and provider options
+- **CUMULUS-4094**
+  - Added `INITIAL_DATE_RANGE_IN_DAYS` environment variable to allow control over how many days objects will be loaded at startup of the dashboard
+
+## [v13.1.0] - 2025-03-25
+
+### Changed
+
+- **CUMULUS-4028**
+  - Renamed cumulus-dashboard package name to `@cumulus/cumulus-dashboard`
+- **security vulnerabilities**
+  - Upgraded axios and xml-crypto packages to fix audit issue
+
+### Deleted
+
+- **CUMULUS-4003**
+  - Remove D3 and related libraries from dashboard.
+
+### Fixed
+
+- **CUMULUS-3263**
+  - Updated datestring format to show the correct hours
+- **CUMULUS-4008**
+  - Updated the Dockerfile with improved NPM install command to prevent error messages.
+
+## [v13.0.0] - 2025-02-19
 This version of the dashboard requires Cumulus API >= v20.0.0
 
 ### Changed
@@ -1445,7 +1477,9 @@ Fix for serving the dashboard through the Cumulus API.
 ### Added
 
 - Versioning and changelog [CUMULUS-197] by @kkelly51
-  [Unreleased]: https://github.com/nasa/cumulus-dashboard/compare/v13.0.0...HEAD
+  [Unreleased]: https://github.com/nasa/cumulus-dashboard/compare/v13.2.0...HEAD
+  [v13.2.0]: https://github.com/nasa/cumulus-dashboard/compare/v13.1.0...v13.2.0
+  [v13.1.0]: https://github.com/nasa/cumulus-dashboard/compare/v13.0.0...v13.1.0
   [v13.0.0]: https://github.com/nasa/cumulus-dashboard/compare/v12.2.0...v13.0.0
   [v12.2.0]: https://github.com/nasa/cumulus-dashboard/compare/v12.1.0...v12.2.0
   [v12.1.0]: https://github.com/nasa/cumulus-dashboard/compare/v12.0.2...v12.1.0

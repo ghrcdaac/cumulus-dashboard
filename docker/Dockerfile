@@ -1,9 +1,10 @@
 FROM node:20.12.2 as build
 WORKDIR /cumulus-dashboard
 COPY package.json package-lock.json ./
-RUN npm install --no-optional
+RUN npm ci --legacy-peer-deps --no-optional 
 
 ARG APIROOT
+ARG INITIAL_DATE_RANGE_IN_DAYS
 ARG AUTH_METHOD
 ARG AWS_REGION
 ARG DAAC_NAME
@@ -20,6 +21,7 @@ RUN bash -c "echo -e API ROOT IS : $APIROOT"
 
 RUN \
  APIROOT=$APIROOT \
+ INITIAL_DATE_RANGE_IN_DAYS=$INITIAL_DATE_RANGE_IN_DAYS \
  AUTH_METHOD=$AUTH_METHOD \
  AWS_REGION=$AWS_REGION \
  DAAC_NAME=$DAAC_NAME \
