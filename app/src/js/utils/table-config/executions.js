@@ -13,9 +13,43 @@ import {
 } from '../format';
 import { strings } from '../../components/locale';
 import { getPersistentQueryParams } from '../url-helper';
-import { getEventDetails } from '../../components/Executions/execution-graph-utils';
 import Tooltip from '../../components/Tooltip/tooltip';
 import { getExecutionStatus } from '../../actions';
+
+export const getEventDetails = (event) => {
+  let result = { ...event };
+  let prop;
+
+  if (event.type.endsWith('StateEntered')) {
+    prop = 'stateEnteredEventDetails';
+  } else if (event.type.endsWith('StateExited')) {
+    prop = 'stateExitedEventDetails';
+  } else if (event.type) {
+    prop = `${event.type.charAt(0).toLowerCase() + event.type.slice(1)}EventDetails`;
+  }
+
+  if (prop && event[prop]) {
+    result = Object.assign(result, event[prop]);
+    delete result[prop];
+  }
+
+  if (result.input) {
+    try {
+      result.input = JSON.parse(result.input);
+    } catch (e) {
+      console.log(e);
+    }
+  }
+
+  if (result.output) {
+    try {
+      result.output = JSON.parse(result.output);
+    } catch (e) {
+      console.log(e);
+    }
+  }
+  return result;
+};
 
 export const formatEvents = (events) => {
   const mutableEvents = cloneDeep(events);
@@ -102,10 +136,10 @@ export const tableColumns = ({ dispatch }) => ([
     width: 150
   },
   {
-    Header: 'Created',
-    accessor: 'createdAt',
+    Header: 'Updated',
+    accessor: 'updatedAt',
     Cell: ({ cell: { value } }) => fromNowWithTooltip(value),
-    id: 'createdAt'
+    id: 'updatedAt'
   },
   {
     Header: 'Duration',

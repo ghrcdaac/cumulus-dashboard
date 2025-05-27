@@ -37,6 +37,7 @@ const CommonConfig = {
       stream: require.resolve('stream-browserify'),
       crypto: require.resolve('crypto-browserify'),
       util: require.resolve('util'),
+      vm: require.resolve('vm-browserify'),
     },
   },
   module: {
@@ -127,6 +128,14 @@ const CommonConfig = {
           },
         ],
       },
+      {
+        test: /\.m?js$/,
+        include: /node_modules/,
+        type: 'javascript/auto',
+        resolve: {
+          fullySpecified: false
+        }
+      },
     ],
   },
   plugins: [
@@ -149,6 +158,7 @@ const CommonConfig = {
       AWS_REGION: config.awsRegion,
       DAAC_NAME: config.target,
       STAGE: config.environment,
+      INITIAL_DATE_RANGE_IN_DAYS: config.initialDateRange,
       HIDE_PDR: config.nav.exclude.PDRs,
       AUTH_METHOD: config.oauthMethod,
       KIBANAROOT: config.kibanaRoot,

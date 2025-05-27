@@ -99,7 +99,7 @@ export const checkApiVersion = () => (dispatch, getState) => {
     dispatch({
       type: types.API_VERSION_INCOMPATIBLE,
       payload: {
-        warning: `This dashboard is incompatible with the current Cumulus API v.${versionNumber}.  This dashboard requires a Cumulus API of v.${minCompatibleApiVersion} or later.`
+        warning: `This dashboard is incompatible with the current Cumulus API v${versionNumber}.  This dashboard requires a Cumulus API of v${minCompatibleApiVersion} or later.`
       }
     });
   }
@@ -167,10 +167,6 @@ export const getCumulusInstanceMetadata = () => ({
     path: 'instanceMeta'
   }
 });
-
-export const refreshCumulusDbConnection = () => (dispatch) => dispatch(
-  getGranule('fake-granuleid-refresh-connection')
-);
 
 export const getGranule = (granuleId, params) => ({
   [CALL_API]: {
@@ -431,7 +427,7 @@ export const getOptionsCollectionName = (options) => ({
     type: types.OPTIONS_COLLECTIONNAME,
     method: 'GET',
     url: new URL('collections', root).href,
-    params: { limit: 100, fields: 'name,version' }
+    params: { limit: 'null', fields: 'name,version', sort_key: ['-timestamp'] }
   }
 });
 
@@ -518,7 +514,7 @@ export const getOptionsProviderName = () => ({
     type: types.OPTIONS_PROVIDERNAME,
     method: 'GET',
     url: new URL('providers', root).href,
-    params: { limit: 100, fields: 'id' }
+    params: { limit: 'null', fields: 'id', sort_key: ['-timestamp'] }
   }
 });
 

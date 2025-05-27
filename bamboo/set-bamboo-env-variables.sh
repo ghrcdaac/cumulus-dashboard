@@ -22,6 +22,7 @@ declare -a param_list=(
     "bamboo_SIT_HIDE_PDR"
     "bamboo_SIT_STAGE"
     "bamboo_SIT_DASHBOARD_BUCKET"
+    "bamboo_INITIAL_DATE_RANGE_IN_DAYS"
 )
 
 ## Strip 'bamboo_SECRET_' from secret keys
@@ -42,6 +43,7 @@ if [[ $NGAP_ENV == 'SIT' ]]; then
 fi
 
 ## Get the current git SHA
+git config --global --add safe.directory $bamboo_working_directory/cumulus-dashboard
 GIT_SHA=$(git rev-parse HEAD)
 export GIT_SHA
 

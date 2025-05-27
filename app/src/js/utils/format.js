@@ -20,7 +20,7 @@ export const fullDate = (datestring) => {
   if (!datestring) {
     return nullValue;
   }
-  return moment(datestring).format('kk:mm:ss MM/DD/YY');
+  return moment(datestring).format('HH:mm:ss MM/DD/YY');
 };
 
 export const dateOnly = (datestring) => {
@@ -335,9 +335,9 @@ export const truncate = (string, to = 100) => {
 const collectionIdSeparator = '___';
 /**
  * Returns the name and version of a collection based on
- * the collectionId used in elasticsearch indexing
+ * the collectionId
  *
- * @param {string} collectionId - collectionId used in elasticsearch index
+ * @param {string} collectionId - collectionId
  * @returns {Object} name and version as object
  */
 export const deconstructCollectionId = (collectionId) => {

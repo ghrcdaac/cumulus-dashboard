@@ -98,7 +98,6 @@ describe('Dashboard Executions Page', () => {
 
       cy.contains('.heading--large', 'Execution');
       cy.get('.button--download').should('have.length', 1);
-      cy.contains('.heading--medium', 'Visual');
 
       cy.get('.status--process')
         .within(() => {
@@ -303,7 +302,6 @@ describe('Dashboard Executions Page', () => {
       cy.visit(`/executions/execution/${executionArn}`);
 
       cy.contains('.heading--large', 'Execution');
-      cy.contains('.heading--medium', 'Visual').should('not.exist');
 
       const startMatch = fullDate('2018-12-06T19:18:11.174Z');
       const endMatch = fullDate('2018-12-06T19:18:41.145Z');
@@ -374,57 +372,6 @@ describe('Dashboard Executions Page', () => {
       });
     });
 
-    it('should show an execution graph for a single execution', () => {
-      const executionArn = 'arn:aws:states:us-east-1:012345678901:execution:test-stack-HelloWorldWorkflow:8e21ca0f-79d3-4782-8247-cacd42a595ea';
-      cy.intercept(
-        { method: 'GET', url: `http://localhost:5001/executions/status/${executionArn}` },
-        { fixture: 'valid-execution.json', statusCode: 200 }
-      );
-
-      cy.visit(`/executions/execution/${executionArn}`);
-
-      cy.contains('.heading--medium', 'Visual').should('exist');
-      cy.get('svg').should('exist');
-      cy.get('svg > .output > .nodes > .node').as('executionGraphNodes');
-      cy.get('@executionGraphNodes').eq(0).should('have.text', 'start');
-      cy.get('@executionGraphNodes').eq(1).should('have.text', 'HelloWorld');
-      cy.get('@executionGraphNodes').eq(2).should('have.text', 'end');
-    });
-
-    it('should show the correct execution graph after previously viewing a different execution', () => {
-      const firstExecutionArn = 'arn:aws:states:us-east-1:012345678901:execution:test-stack-HelloWorldWorkflow:8e21ca0f-79d3-4782-8247-cacd42a595ea';
-      const secondExecutionArn = 'arn:aws:states:us-east-1:123456789012:execution:TestSourceIntegrationIngestGranuleStateMachine-MOyI0myKEXzf:7a71f849-57a0-40e7-8fca-5cf796602a07';
-
-      cy.intercept(
-        { method: 'GET', url: `http://localhost:5001/executions/status/${firstExecutionArn}` },
-        { fixture: 'valid-execution.json', statusCode: 200 }
-      );
-
-      cy.intercept(
-        { method: 'GET', url: `http://localhost:5001/executions/status/${secondExecutionArn}` },
-        { fixture: 'valid-execution-2.json', statusCode: 200 }
-      );
-
-      cy.visit(`/executions/execution/${firstExecutionArn}`);
-
-      cy.contains('.heading--medium', 'Visual').should('exist');
-      cy.get('svg').should('exist');
-      cy.get('svg > .output > .nodes > .node').as('executionGraphNodes');
-      cy.get('@executionGraphNodes').eq(0).should('have.text', 'start');
-      cy.get('@executionGraphNodes').eq(1).should('have.text', 'HelloWorld');
-
-      cy.contains('.sidebar__nav--back', 'Back to Executions').click();
-      cy.wait(1000);
-      cy.get(`.td a[href="/executions/execution/${secondExecutionArn}"]`).click();
-
-      cy.contains('.heading--medium', 'Visual').should('exist');
-      cy.get('svg').should('exist');
-      cy.get('svg > .output > .nodes > .node').as('executionGraphNodes');
-      cy.get('@executionGraphNodes').eq(0).should('have.text', 'start');
-      cy.get('@executionGraphNodes').eq(1).should('not.have.text', 'HelloWorld');
-      cy.get('@executionGraphNodes').eq(1).should('have.text', 'SyncGranule');
-    });
-
     it('should show executions for a granule/collection', () => {
       const granuleId = 'MOD09GQ.A9344328.K9yI3O.006.4625818663028';
       cy.visit(`/executions/executions-list/MOD09GQ___006/${granuleId}`);
@@ -463,7 +410,7 @@ describe('Dashboard Executions Page', () => {
       cy.get('#search').as('search-input');
       cy.get('@search-input').click().type(search).type('{enter}');
 
-      cy.get('.table__main-asset > a').click();
+      cy.get('.table__main-asset > a').click({ force: true });
 
       // Breakcrumb <Link> contain correct query params
       cy.get('.breadcrumb > :nth-child(2) > a')
