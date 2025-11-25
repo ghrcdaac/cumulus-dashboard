@@ -7,7 +7,7 @@ set -o pipefail
 
 
 
-export AWS_REGION=$bamboo_AWS_REGION
+export AWS_REGION=${bamboo_AWS_REGION:-us-west-2}
 export DAAC_NAME=${bamboo_DAAC_NAME:-ghrc}
 
 export ENABLE_RECOVERY=true
