@@ -7,10 +7,101 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+- **CUMULUS-4461**
+  - Address qs vulnerability by overriding its version to ^6.14.1
+
+## [v14.1.0] - 2025-12-22
+
+### Added
+
+- **CUMULUS-2956**
+  - Added the output of an operation to the overview page and a new page to view an individual operation
+- **CUMULUS-3627**
+  - Added `USE_UTC_TIME_FORMAT` environment variable to allow control over the table's date/time timezone format
+- **CUMULUS_4129**
+  - Added ESTIMATE_TABLE_ROW_COUNT env var to toggle estimated table row count for executions and granules
+
+### Changed
+
+- **CUMULUS-3811**
+  - Refactor data management class components to functional components
+- **CUMULUS_4182**
+  - executions and granules list calls updated to search un-archived records
+- **CUMULUS-4223**
+  - Upgrade cypress docker image, folders, test specs, configs to v12.17.4
+- **CUMULUS-4226**
+  - Executions and granules non-archived search is toggleable. Overview values are not affected, and show size of whole table.
+- **CUMULUS-3342**
+  - Update dashboard and cypress test to remove all DynamoDB reference in Reconciliation reports.
+
+### Fixed
+
+- **CSD-72**
+  - Update collection edit to load collection data regardless of the time filters. 
+  - Update package-lock.json with audix fix for min-document, jws, js-yaml and node-forge.
+- **CSD-77**
+  - Updated url-helper functions to extract query parameters correctly for both browser history and hash history. These updates fix the search functionality
+
+## [v14.0.0] - 2025-09-16
+
+## Handle Granules with Identical producerGranuleId in Different Collections
+This version of the dashboard requires Cumulus API >= v21.0.0
+
+- **CUMULUS-4063**
+  - Visualized producerGranuleId on the Granules and PDRs pages where granules are displayed
+- **CUMULUS-4064**
+  - Populated producer ID in dash/db fixtures
+  - Updated the dashboard to use alpha version `@cumulus/api@20.1.3-alpha.2` and
+    `@cumulus/aws-client@20.1.3-alpha.2`
+- **CUMULUS-4086**
+  - Added fixture and cypress tests to verify that duplicate granules with the same producerGranuleIds will show in the Granules and PDRs pages
+
+## [v13.3.1] - 2025-12-22
+
+### Fixed
+
+- **CSD-72**
+  - Update collection edit to load collection data regardless of the time filters. 
+  - Update package-lock.json with audix fix for min-document, jws, js-yaml and node-forge.
+- **CSD-77**
+  - Updated url-helper functions to extract query parameters correctly for both browser history and hash history. These updates fix the search functionality
+
+## [v13.3.0] - 2025-09-11
+
+### Fixed
+
+- **CUMULUS-3680**
+  - Fixed drop-down menus to include all collection and provider options .
+  - Removed unnecessary API calls from Operations and Providers pages.
+  - Fixed search on Operations overview page and added cypress tests for Operations page.
+- **CUMULUS-4094**
+  - Set the endDateTime to null for initial date range
+- **security vulnerabilities**
+  - Overrode pbkdf2 package and upgraded related packages to fix critical audit issue
+- **CUMULUS-4039**
+  - Updated to allow slashes in provider name and collection name
+- **CUMULUS-4122**
+  - Improved granule search performance by using prefix matching by default.
+  - Added a `Search by Infix` toggle to allow infix (contains) searches for Granule ID
+- **CUMULUS-4171**
+  - Removed override of pbkdf2 ^3.1.3 for crypto-browserify since pbkdf2 ^3.1.3 will be pulled automatically
+- **CUMULUS-4179**
+  - Updated cypress to a version which does not use deprecated `request` subdependency due to snyk failures
+  - Pinned `form-data` to ^4.0.4 and `elliptic` to ^6.6.1 to fix audit failures
+- **CUMULUS-4193**
+  - Removing dependency override of elliptic in the crypto-browserify and browserify-sign packages
+  - Regenerated package-lock.json and various packages have been updated
+- **security vulnerabilities**
+  - Upgraded `axios` to ^1.12.0 to fix audit issue
+
 ## [v13.2.0] - 2025-05-14
 
 ### Added
 
+- **CUMULUS-3624**
+  - Added an inactivity modal to prompt inactive users and to logout after a period of no user interactions after the modal appears
+- **CUMULUS-3849**
+  - Added a network error modal that pops up when the user is offline
 - **CUMULUS-4048**
   - Added a session timeout warning modal that pops up five minutes before the session expires
 - **CUMULUS-4088**
@@ -26,11 +117,15 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
   - Renamed cumulus-dashboard package name to `@cumulus/cumulus-dashboard`
 - **security vulnerabilities**
   - Upgraded axios and xml-crypto packages to fix audit issue
+- **CUMULUS-3813**
+  - Refactored the following files from class to function components: text.js, text-area.js, sub-form.js, Form.js, dropdown-async-command.js
 
 ### Deleted
 
 - **CUMULUS-4003**
   - Remove D3 and related libraries from dashboard.
+- **CUMULUS-4101**
+  - Removed the Internal Reconciliation Report reference from cumulus-dashboard and cumulus-api.
 
 ### Fixed
 
@@ -38,6 +133,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
   - Updated datestring format to show the correct hours
 - **CUMULUS-4008**
   - Updated the Dockerfile with improved NPM install command to prevent error messages.
+- **CUMULUS-4114**
+  - Updated the exports in index to be called in overview to allow the rules count to be affected by the datepicker while keeping the rules page unaffected.
 
 ## [v13.0.0] - 2025-02-19
 This version of the dashboard requires Cumulus API >= v20.0.0
@@ -51,7 +148,7 @@ This version of the dashboard requires Cumulus API >= v20.0.0
   - Added documentation for beginners starting from scratch.
 
 - **CUMULUS-3861**
-  - Updated React 17 to React 18  
+  - Updated React 17 to React 18
   - Removed test script references to Enzyme and replaced them with React compliant testing components
 
 - **CUMULUS-3860/3870**
@@ -106,7 +203,7 @@ This version of the dashboard requires Cumulus API >= v18.4.0
 - **Snyk Security Fix**
   - Upgraded axios from 1.6.0 to 1.6.8
 - **CUMULUS-3810**
-  - converted the following files from class to functional components: home.js, 
+  - converted the following files from class to functional components: home.js,
   header.js, index.js, oauth.js, app.js, and 404.js
 - **CUMULUS-2668**
   - Refactored DeleteCollectionModal and BatchAsyncCommands from class to function components.
@@ -1477,7 +1574,11 @@ Fix for serving the dashboard through the Cumulus API.
 ### Added
 
 - Versioning and changelog [CUMULUS-197] by @kkelly51
-  [Unreleased]: https://github.com/nasa/cumulus-dashboard/compare/v13.2.0...HEAD
+  [Unreleased]: https://github.com/nasa/cumulus-dashboard/compare/v14.1.0...HEAD
+  [v14.1.0]: https://github.com/nasa/cumulus-dashboard/compare/v14.0.0...v14.1.0
+  [v14.0.0]: https://github.com/nasa/cumulus-dashboard/compare/v13.3.1...v14.0.0
+  [v13.3.1]: https://github.com/nasa/cumulus-dashboard/compare/v13.3.0...v13.3.1
+  [v13.3.0]: https://github.com/nasa/cumulus-dashboard/compare/v13.2.0...v13.3.0
   [v13.2.0]: https://github.com/nasa/cumulus-dashboard/compare/v13.1.0...v13.2.0
   [v13.1.0]: https://github.com/nasa/cumulus-dashboard/compare/v13.0.0...v13.1.0
   [v13.0.0]: https://github.com/nasa/cumulus-dashboard/compare/v12.2.0...v13.0.0

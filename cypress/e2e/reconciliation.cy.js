@@ -43,7 +43,7 @@ describe('Dashboard Reconciliation Reports Page', () => {
       cy.contains('.table .thead .th', 'Date Generated');
       cy.contains('.table .thead .th', 'Download Report');
       cy.contains('.table .thead .th', 'Delete Report');
-      cy.get('.table .tbody .tr').should('have.length', 6);
+      cy.get('.table .tbody .tr').should('have.length', 5);
       cy.get('[data-value="inventoryReport-2020/01/14T202529026"] > .table__main-asset > a').should('have.attr', 'href', '/reconciliation-reports/report/inventoryReport-2020%2F01%2F14T202529026');
       cy.get('[data-value="inventoryReport-20200114T205238781"] > .table__main-asset > a').should('have.attr', 'href', '/reconciliation-reports/report/inventoryReport-20200114T205238781');
     });
@@ -96,7 +96,7 @@ describe('Dashboard Reconciliation Reports Page', () => {
 
     it('should have a download button column', () => {
       cy.visit('/reconciliation-reports');
-      cy.get('.button__row--download').should('have.length', 6);
+      cy.get('.button__row--download').should('have.length', 5);
     });
 
     it('deletes a report when the Delete button is clicked', () => {
@@ -238,7 +238,7 @@ describe('Dashboard Reconciliation Reports Page', () => {
 
       const cards = [
         {
-          title: 'DynamoDB',
+          title: 'Db',
           count: 35,
           firstColumn: 'GranuleId'
         },
@@ -370,12 +370,6 @@ describe('Dashboard Reconciliation Reports Page', () => {
       cy.get('.legend-items--item').eq(2).should('contain', 'No issues/conflicts');
     });
 
-    it('should download the Internal report with the report link', () => {
-      const reportName = 'InternalReport092020';
-      cy.visit('/reconciliation-reports');
-      cy.get(`[data-value="${reportName}"]`).find('.button__row--download').should('have.length', 1);
-    });
-
     it('displays an individual ORCA report', () => {
       const reportName = 'orcaBackupReport-20220111T191341153';
       const granuleId = 'MYD13Q1.A3194547.tnYsne.006.8400707913298';
@@ -489,7 +483,7 @@ describe('Dashboard Reconciliation Reports Page', () => {
 
       const cards = [
         {
-          title: 'DynamoDB',
+          title: 'Db',
           count: 12
         },
         {
@@ -525,7 +519,7 @@ describe('Dashboard Reconciliation Reports Page', () => {
 
       const cards = [
         {
-          title: 'DynamoDB',
+          title: 'Db',
           count: 10
         },
         {

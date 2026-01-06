@@ -5,6 +5,7 @@ import withQueryParams from 'react-router-query-params';
 import { withRouter } from 'react-router-dom';
 import { AsyncTypeahead } from 'react-bootstrap-typeahead';
 import { get } from 'object-path';
+import debounce from 'lodash/debounce';
 import { getInitialValueFromLocation } from '../../utils/url-helper';
 import {
   renderSearchInput,
@@ -24,6 +25,8 @@ const Search = ({
   action,
   clear,
   dispatch,
+  infixBoolean,
+  archived,
   inputProps = {
     className: 'search',
   },
@@ -39,6 +42,7 @@ const Search = ({
   ...rest
 }) => {
   const searchRef = createRef();
+
   const formID = `form-${label}-${paramKey}`;
   const initialValueRef = useRef(getInitialValueFromLocation({
     location,
@@ -54,33 +58,44 @@ const Search = ({
 
   useEffect(() => {
     if (initialValueRef.current) {
-      dispatch(action(initialValueRef.current));
+      dispatch(action(initialValueRef.current, infixBoolean, archived));
     }
-  }, [action, dispatch]);
+  }, [action, infixBoolean, archived, dispatch]);
+
+  useEffect(() => {
+    // Always get the latest value from the URL/queryParams
+    const currentValue = getInitialValueFromLocation({ location, paramKey });
+
+    const debouncedDispatch = debounce((value) => {
+      if (value) {
+        dispatch(action(currentValue, infixBoolean, archived));
+      } else {
+        dispatch(clear(paramKey));
+      }
+    }, 500);
+
+    debouncedDispatch(currentValue);
+
+    return () => {
+      debouncedDispatch.cancel();
+    };
+  }, [action, infixBoolean, archived, dispatch, location, paramKey, queryParams, clear]);
 
   const handleSearch = useCallback((query) => {
-    if (query) dispatch(action(query));
-    else dispatch(clear);
-  }, [action, clear, dispatch]);
+    setQueryParams({ [paramKey]: query || undefined });
+  }, [paramKey, setQueryParams]);
 
   function handleChange(selections) {
     if (selections && selections.length > 0) {
       const query = selections[0][labelKey];
-      dispatch(action(query));
       setQueryParams({ [paramKey]: query });
     } else {
-      dispatch(clear());
       setQueryParams({ [paramKey]: undefined });
     }
   }
 
   function handleInputChange(text) {
-    if (text) {
-      setQueryParams({ [paramKey]: text });
-    } else {
-      dispatch(clear());
-      setQueryParams({ [paramKey]: undefined });
-    }
+    setQueryParams({ [paramKey]: text || undefined });
   }
 
   function handleFocus(event) {
@@ -128,6 +143,7 @@ const Search = ({
 Search.propTypes = {
   dispatch: PropTypes.func,
   action: PropTypes.func,
+  infixBoolean: PropTypes.bool,
   clear: PropTypes.func,
   inputProps: PropTypes.object,
   paramKey: PropTypes.string,
@@ -140,6 +156,7 @@ Search.propTypes = {
   searchKey: PropTypes.string,
   setQueryParams: PropTypes.func,
   placeholder: PropTypes.string,
+  archived: PropTypes.bool,
 };
 
 export default withRouter(withQueryParams()(connect((state) => state)(Search)));

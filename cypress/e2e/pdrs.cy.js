@@ -93,14 +93,20 @@ describe('Dashboard PDRs Page', () => {
     });
 
     it('should display active PDRs', () => {
+      cy.intercept('GET', '**/pdrs?*').as('listPdrs');
+      cy.intercept('GET', '**/stats/aggregate*').as('getPdrCounts');
       cy.visit('/pdrs');
+      cy.wait('@listPdrs');
+      cy.wait('@getPdrCounts');
+
       cy.contains('.sidebar__row ul li a', 'Running 4')
         .should('have.attr', 'href', '/pdrs/active')
         .click();
 
       cy.contains('.heading--xlarge', 'Pdrs');
       cy.contains('.heading--large', 'Active PDRs')
-        .contains('.num-title', 4);
+        .find('.num-title')
+        .should('contain', 4);
 
       cy.get('.table .tbody .tr').as('list');
       cy.get('@list').should('have.length', 4);
@@ -185,7 +191,7 @@ describe('Dashboard PDRs Page', () => {
       });
     });
 
-    it('should display granules in the individual PDR page', () => {
+    it('should display granules in the individual PDR page and search based on infix toggle', () => {
       const pdrName = 'MOD09GQ_1granule_v3.PDR';
       cy.visit(`/pdrs/pdr/${pdrName}`);
       cy.contains('.heading--large', pdrName);
@@ -198,16 +204,30 @@ describe('Dashboard PDRs Page', () => {
         .type('{enter}');
       cy.get('.search').as('search');
       cy.get('@search').eq(0).should('be.visible').click()
-        .type('GQ');
+        .type('MOD');
       cy.url().should('include', 'status=completed');
-      cy.url().should('include', 'search=GQ');
-
+      cy.url().should('include', 'search=MOD');
       cy.get('.table .tbody .tr').as('list');
-      cy.get('@list').should('have.length', 2);
+      cy.get('@list').should('have.length', 3);
+      cy.get('#chk_isInfixSearch').should('not.be.checked');
+      cy.get('@search').eq(0).should('be.visible').click()
+        .type('GQ');
+      cy.url().should('include', 'search=GQ');
+      cy.get('.table .tbody .tr').should('have.length', 0);
+      cy.get('#chk_isInfixSearch').click({ force: true }).should('be.checked');
+      cy.get('.table .tbody .tr').as('list');
+      cy.get('@list').should('have.length', 3);
 
       cy.getFakeApiFixture('granules').its('results')
-        .then((granules) => granules.filter((item) => item.pdrName === pdrName))
+        .then((granules) => granules.filter((item) => (
+          item.pdrName === pdrName &&
+          item.granuleId.includes('GQ') &&
+          item.status === 'completed'
+        )))
         .each((granule) => {
+          if (granule.archived === true) {
+            return;
+          }
           cy.get(`[data-value="${granule.granuleId}"]`).children().as('columns');
           cy.get('@columns').eq(1)
             .contains(granule.status, { matchCase: false });
@@ -218,9 +238,11 @@ describe('Dashboard PDRs Page', () => {
           cy.get('@columns').eq(3)
             .contains('a', collectionName(granule.collectionId))
             .should('have.attr', 'href', collectionHrefFromId(granule.collectionId));
-          cy.get('@columns').eq(4)
+          cy.get('@columns').eq(4).invoke('text')
+            .should('be.eq', `${granule.producerGranuleId}`);
+          cy.get('@columns').eq(5)
             .should('have.text', `${Number(granule.duration.toFixed(2))}s`);
-          cy.get('@columns').eq(5).invoke('text')
+          cy.get('@columns').eq(6).invoke('text')
             .should('match', /.+[0-9]{2}\/[0-9]{2}\/[0-9]{2}$/);
           cy.intercept('DELETE', `/granules/${granule.granuleId}`).as(`deleteGranule${granule.granuleId}`);
           cy.get(`[data-value="${granule.granuleId}"] > .td >input[type="checkbox"]`).check();
@@ -232,9 +254,37 @@ describe('Dashboard PDRs Page', () => {
 
       cy.url().should('include', `/pdrs/pdr/${pdrName}`);
       cy.get('.heading--large').should('have.text', `PDR: ${pdrName}`);
+
+      cy.getFakeApiFixture('granules').its('results').then((results) => {
+        const duplicateGranules = results.filter((g) => g.producerGranuleId === 'MOD09GQ.A1657416.CbyoRi.006.9697917818587');
+        expect(duplicateGranules.length).to.equal(3);
+      });
     });
 
-    it('Should dynamically update menu, sidbar and breadcrumb /pdrs links with latest filter criteria', () => {
+    it('Should search by unarchived or both as toggled', () => {
+      const prefixBoth = 'MOD09GQ.ARC';
+      const prefixArchived = 'MOD09GQ.ARCY';
+      const prefixNotArchived = 'MOD09GQ.ARCN';
+      const pdrName = 'MOD09GQ_1granule_v3.PDR';
+      cy.visit(`/pdrs/pdr/${pdrName}`);
+      cy.get('#chk_isArchivedSearch').should('not.be.checked');
+      cy.get('.search').as('search');
+      cy.get('@search').click().type(prefixBoth).type('{enter}');
+      cy.get('.table .tbody .tr').should('have.length', 1);
+      cy.get('@search').click().type(prefixNotArchived).type('{enter}');
+      cy.get('.table .tbody .tr').should('have.length', 1);
+      cy.get('@search').click().type(prefixArchived).type('{enter}');
+      cy.get('.table .tbody .tr').should('have.length', 0);
+
+      cy.get('#chk_isArchivedSearch').click({ force: true }).should('be.checked');
+      cy.get('@search').click().type(prefixBoth).type('{enter}');
+      cy.get('.table .tbody .tr').should('have.length', 2);
+      cy.get('@search').click().type(prefixNotArchived).type('{enter}');
+      cy.get('.table .tbody .tr').should('have.length', 1);
+      cy.get('@search').click().type(prefixArchived).type('{enter}');
+      cy.get('.table .tbody .tr').should('have.length', 1);
+    });
+    it('Should dynamically update menu, sidebar and breadcrumb /pdrs links with latest filter criteria', () => {
       const status = 'running';
 
       cy.visit('/pdrs');

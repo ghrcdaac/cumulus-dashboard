@@ -33,6 +33,7 @@ import { granuleStatus as statusOptions } from '../../utils/status';
 import { workflowOptionNames } from '../../selectors';
 import ListFilters from '../ListActions/ListFilters';
 import CollectionHeader from './collection-header';
+import Checkbox from '../Checkbox/Checkbox';
 
 const CollectionGranules = ({
   dispatch,
@@ -47,16 +48,18 @@ const CollectionGranules = ({
   const granuleStatus = status === 'processing' ? 'running' : status;
   const { list } = granules;
   const { meta } = list;
+  const decodedCollectionName = decodeURIComponent(collectionName);
   const decodedVersion = decodeURIComponent(collectionVersion);
   const collectionId = getCollectionId({
-    name: collectionName,
+    name: decodedCollectionName,
     version: decodedVersion,
   });
   const [workflow, setWorkflow] = useState(workflowOptions[0]);
   const [workflowMeta, setWorkflowMeta] = useState(defaultWorkflowMeta);
   const [selected, setSelected] = useState([]);
-  const query = generateQuery();
   const { dropdowns } = providers;
+  const [isInfixSearch, setIsInfixSearch] = useState(false);
+  const [isArchivedSearch, setIsArchivedSearch] = useState(false);
 
   const breadcrumbConfig = [
     {
@@ -89,10 +92,13 @@ const CollectionGranules = ({
     const options = {
       ...queryParams,
       collectionId,
+      archived: isArchivedSearch,
     };
     if (granuleStatus) options.status = granuleStatus;
     return options;
   }
+
+  const query = generateQuery();
 
   function generateBulkActions() {
     const actionConfig = {
@@ -143,7 +149,7 @@ const CollectionGranules = ({
       </Helmet>
       <CollectionHeader
         breadcrumbConfig={breadcrumbConfig}
-        name={collectionName}
+        name={decodedCollectionName}
         queriedAt={meta.queriedAt}
         version={decodedVersion}
       />
@@ -177,8 +183,28 @@ const CollectionGranules = ({
             labelKey="granuleId"
             placeholder="Granule ID"
             searchKey="granules"
+            infixBoolean={isInfixSearch}
+            archived={isArchivedSearch}
           />
           <ListFilters>
+            <Checkbox
+              id="chk_isInfixSearch"
+              checked={isInfixSearch}
+              onChange={setIsInfixSearch}
+              label="Search By"
+              inputLabel="Infix"
+              className="infix-search"
+              tip="Toggle between prefix and infix search. When enabled, the search field matches substrings instead of prefixes."
+            />
+            <Checkbox
+              id="chk_isArchivedSearch"
+              checked={isArchivedSearch}
+              onChange={setIsArchivedSearch}
+              label="Include"
+              inputLabel="Archived"
+              className="archived-search"
+              tip="Toggle inclusion of archived records in search results"
+            />
             {!granuleStatus && (
               <Dropdown
                 options={statusOptions}

@@ -11,6 +11,22 @@ import { Alert } from 'react-bootstrap';
 import { getPersistentQueryParams } from './url-helper';
 import Tooltip from '../components/Tooltip/tooltip';
 import Popover from '../components/Popover/popover';
+import config from '../config';
+
+/**
+ * Returns a number indicating the relative lexicographical, case-insensitive
+ * ordering of the specified strings.  Returns a number less than 0 if the
+ * first string occurs before the second string in ascending lexiographical
+ * (and case-insensitive) order; 0 if they are equivalent; greater than zero if
+ * the first occurs after the second.
+ *
+ * @param {string} a - first string to compare
+ * @param {string} b - second string to compare
+ * @param {number} a number less than 0 if `a` is "less than" `b`, 0 if they
+ *    are "equal" (ignoring case), or a number greater than 0 if `a` is
+ *    "greater than" `b`
+ */
+export const asc = (a, b) => a.localeCompare(b, 'en', { sensitivity: 'base' });
 
 export const nullValue = '--';
 
@@ -20,14 +36,16 @@ export const fullDate = (datestring) => {
   if (!datestring) {
     return nullValue;
   }
-  return moment(datestring).format('HH:mm:ss MM/DD/YY');
+  const dateFormat = config.useUTCTimeFormat === 'UTC' ? moment.utc(datestring) : moment(datestring);
+  return dateFormat.format('HH:mm:ss MM/DD/YY');
 };
 
 export const dateOnly = (datestring) => {
   if (!datestring) {
     return nullValue;
   }
-  return moment(datestring).format('MM/DD/YYYY');
+  const dateFormat = config.useUTCTimeFormat === 'UTC' ? moment.utc(datestring) : moment(datestring);
+  return dateFormat.format('MM/DD/YYYY');
 };
 
 export const parseJson = (jsonString) => {
@@ -290,7 +308,7 @@ export const providerLink = (provider) => {
   return (
     <Link
       to={(location) => ({
-        pathname: `/providers/provider/${provider}`,
+        pathname: `/providers/provider/${encodeURIComponent(provider)}`,
         search: getPersistentQueryParams(location),
       })}
     >
@@ -393,7 +411,7 @@ export const getCollectionId = (collection) => {
 
 export const getEncodedCollectionId = (collection) => {
   if (collection && collection.name && collection.version) {
-    return constructCollectionId(collection.name, encodeURIComponent(collection.version));
+    return constructCollectionId(encodeURIComponent(collection.name), encodeURIComponent(collection.version));
   }
   return nullValue;
 };
@@ -415,12 +433,12 @@ export const collectionLink = (collectionId) => {
 export const collectionHrefFromId = (collectionId) => {
   if (!collectionId) return nullValue;
   const { name, version } = collectionNameVersion(collectionId);
-  return `/collections/collection/${name}/${encodeURIComponent(version)}`;
+  return `/collections/collection/${encodeURIComponent(name)}/${encodeURIComponent(version)}`;
 };
 
 export const collectionHrefFromNameVersion = ({ name, version } = {}) => {
   if (!name || !version) return nullValue;
-  return `/collections/collection/${name}/${encodeURIComponent(version)}`;
+  return `/collections/collection/${encodeURIComponent(name)}/${encodeURIComponent(version)}`;
 };
 
 /* Modal Text */
