@@ -17,8 +17,9 @@ const EditCollection = ({ match, collections }) => {
   const {
     params: { name, version },
   } = match;
+  const decodedName = decodeURIComponent(name);
   const decodedVersion = decodeURIComponent(version);
-  const collectionId = getCollectionId({ name, version: decodedVersion });
+  const collectionId = getCollectionId({ name: decodedName, version: decodedVersion });
 
   return (
     <div className = "edit_collections">
@@ -30,8 +31,8 @@ const EditCollection = ({ match, collections }) => {
         schemaKey={SCHEMA_KEY}
         primaryProperty="name"
         state={collections}
-        getRecord={() => getCollection(name, version)}
-        updateRecord={(payload) => updateCollection(payload, name, decodedVersion)}
+        getRecord={() => getCollection(name, version, false)}
+        updateRecord={(payload) => updateCollection(payload, decodedName, decodedVersion)}
         backRoute={collectionHrefFromNameVersion({ name, version })}
         clearRecordUpdate={clearUpdateCollection}
         hasModal={true}

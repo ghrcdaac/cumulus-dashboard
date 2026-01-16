@@ -4,9 +4,6 @@ import {
   OPERATIONS,
   OPERATIONS_INFLIGHT,
   OPERATIONS_ERROR,
-  OPERATION,
-  OPERATION_INFLIGHT,
-  OPERATION_ERROR,
   FILTER_OPERATIONS,
   CLEAR_OPERATIONS_FILTER,
   SEARCH_OPERATIONS,
@@ -19,7 +16,6 @@ export const initialState = {
     count: {},
     meta: {},
     params: {},
-    internal: {},
     inflight: false,
     error: false,
   },
@@ -40,19 +36,6 @@ export default createReducer(initialState, {
     state.list.inflight = false;
     state.list.error = action.error;
   },
-  [OPERATION]: (state, action) => {
-    state.list.data = action.data.results;
-    state.list.meta = assignDate(action.data.meta);
-    state.list.inflight = false;
-    state.list.error = false;
-  },
-  [OPERATION_INFLIGHT]: (state) => {
-    state.list.inflight = true;
-  },
-  [OPERATION_ERROR]: (state, action) => {
-    state.list.inflight = false;
-    state.list.error = action.error;
-  },
   [FILTER_OPERATIONS]: (state, action) => {
     state.list.params[action.param.key] = action.param.value;
   },
@@ -60,9 +43,9 @@ export default createReducer(initialState, {
     delete state.list.params[action.paramKey];
   },
   [SEARCH_OPERATIONS]: (state, action) => {
-    state.list.internal.infix = action.infix;
+    state.list.params.infix = action.infix;
   },
   [CLEAR_OPERATIONS_SEARCH]: (state) => {
-    delete state.list.internal.infix;
+    state.list.params.infix = null;
   },
 });

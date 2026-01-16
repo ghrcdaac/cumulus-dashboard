@@ -33,6 +33,7 @@ import Search from '../Search/search';
 import { workflowOptionNames } from '../../selectors';
 import Breadcrumbs from '../Breadcrumbs/Breadcrumbs';
 import ListFilters from '../ListActions/ListFilters';
+import Checkbox from '../Checkbox/Checkbox';
 
 const generateBreadcrumbConfig = (view) => [
   {
@@ -62,6 +63,8 @@ const AllGranules = ({
   const [workflow, setWorkflow] = useState(workflowOptions[0]);
   const [workflowMeta, setWorkflowMeta] = useState(defaultWorkflowMeta);
   const [selected, setSelected] = useState([]);
+  const [isInfixSearch, setIsInfixSearch] = useState(false);
+  const [isArchivedSearch, setIsArchivedSearch] = useState(false);
   const { dropdowns } = collections;
   const { dropdowns: providerDropdowns } = providers;
   const { list } = granules;
@@ -99,6 +102,7 @@ const AllGranules = ({
   function generateQuery() {
     const options = { ...queryParams };
     options.status = status;
+    options.archived = false;
     return options;
   }
 
@@ -186,12 +190,33 @@ const AllGranules = ({
           <Search
             action={searchGranules}
             clear={clearGranulesSearch}
+            infixBoolean={isInfixSearch}
+            archived={isArchivedSearch}
             label="Search"
             labelKey="granuleId"
             placeholder="Granule ID"
             searchKey="granules"
           />
+
           <ListFilters>
+            <Checkbox
+              id="chk_isInfixSearch"
+              checked={isInfixSearch}
+              onChange={setIsInfixSearch}
+              label="Search By"
+              inputLabel="Infix"
+              className="infix-search"
+              tip="Toggle between prefix and infix search. When enabled, the search field matches substrings instead of prefixes."
+            />
+            <Checkbox
+              id="chk_isArchivedSearch"
+              checked={isArchivedSearch}
+              onChange={setIsArchivedSearch}
+              label="Include"
+              inputLabel="Archived"
+              className="archived-search"
+              tip="Toggle inclusion of archived records in search results"
+            />
             <Dropdown
               getOptions={getOptionsCollectionName}
               options={get(dropdowns, ['collectionName', 'options']) || []}
