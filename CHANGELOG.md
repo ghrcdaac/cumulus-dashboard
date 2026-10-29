@@ -7,6 +7,84 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+### Breaking Changes
+
+### Added
+
+### Changed
+
+### Fixed
+
+## [v14.2.1] - 2026-05-11
+
+### Fixed
+
+- **CSD-103**
+  - Fixed the getExecuteOptions select handler in the granule detail view modal to correctly set the workflow state data.
+
+- **CSD-106**
+  - Suppressed "None" and "Unknown" error messages in the Granule list and detail views when no actual failure exists.
+
+## [v14.2.1] - 2026-04-07
+
+### Breaking Changes
+
+This version of the dashboard requires Cumulus API >= v21.3.2
+
+### Added
+
+- **CUMULUS-4298**
+  - Added checkbox to exclude collections from date filtering.
+
+### Changed
+
+- **CUMULUS-4087**
+  - Implemented automatic session extension for the Cumulus Dashboard. The JWT token and session will be automatically extended as long as the user is active. There is a corresponding CUMULUS-4087 PR for the Cumulus API to add support for this.
+- **CUMULUS-4474**
+  - Updated bulk granule operation modal to:
+    - Support `granuleInventoryReportName` and `s3GranuleIdInputFile` in the request payload.
+    - Accept a list of granule IDs instead of granule objects in the request payload.
+  - Updated the dashboard to use alpha version `@cumulus/api@21.3.1-alpha.0` and
+    `@cumulus/aws-client@21.3.1-alpha.0`
+  - Updated the Cypress granules fixture due to the localApi update.
+  - Updated the Cypress seed function to upload the reconciliation report in its original format.
+- **CUMULUS-4485**
+  - Updated Table component:
+    - `queryNewSort` check now uses `sort_key`
+    - `useEffect` uses default values when limit or page is nil to prevent duplicate query updates
+  - Removed unused `onChange` function from `datePickerHeader` in multiple components
+- **CUMULUS-4538**
+  - Bumped node version from 20.12.2 to 22.21.1 to match Core
+  - Upgraded postgres image to postgres:17.4-alpine
+- **CUMULUS-4573**
+  - updated minCompatibleApiVersion from 21.0.0 to 21.3.2
+  - updated `queryGranulesWorkflows` to filter out empty strings and empty arrays
+  - changed cypress `errMsgRegx` in `rules.cy.js` to regex match the error message
+  - updated `@cumulus/aws-client` and `@cumulus/api` from 21.3.1-alpha.0 to 21.3.2
+  - pinned `lodash` to `^4.18.1` due to audit issues
+  - added `picomatch`, `lodash`, `lodash-es`, `node-forge`, `path-to-regexp`, `tar`, and `@xmldom/xmldom` to overides to fix audit issues
+- **security vulnerabilities**
+  - added `minimatch` and `serialize-javascript`to overides to fix audit issues
+
+### Fixed
+
+- **CUMULUS-4204**
+  - Add Error and Error Type column to granules list, and display error message on granule overview.
+
+## [v14.2.0] - 2026-01-27
+
+### Changed
+
+- **CUMULUS-4484**
+  - Change INITIAL_DATE_RANGE_IN_DAYS default value to 1
+- **CUMULUS-4189**
+  - Added search button and removed  dispatching search/url update on every keystroke
+- **CUMULUS-4451**
+  - Disable sort executions by name to avoid slow query in Postgres
+  - Set default sort order for executions to -updatedAt to avoid slow query in Postgres
+
+### Fixed
+
 - **CUMULUS-4461**
   - Address qs vulnerability by overriding its version to ^6.14.1
 
@@ -1574,7 +1652,10 @@ Fix for serving the dashboard through the Cumulus API.
 ### Added
 
 - Versioning and changelog [CUMULUS-197] by @kkelly51
-  [Unreleased]: https://github.com/nasa/cumulus-dashboard/compare/v14.1.0...HEAD
+  [Unreleased]: https://github.com/nasa/cumulus-dashboard/compare/v14.2.2...HEAD
+  [v14.2.2]: https://github.com/nasa/cumulus-dashboard/compare/v14.2.1...v14.2.2
+  [v14.2.1]: https://github.com/nasa/cumulus-dashboard/compare/v14.2.0...v14.2.1
+  [v14.2.0]: https://github.com/nasa/cumulus-dashboard/compare/v14.1.0...v14.2.0
   [v14.1.0]: https://github.com/nasa/cumulus-dashboard/compare/v14.0.0...v14.1.0
   [v14.0.0]: https://github.com/nasa/cumulus-dashboard/compare/v13.3.1...v14.0.0
   [v13.3.1]: https://github.com/nasa/cumulus-dashboard/compare/v13.3.0...v13.3.1

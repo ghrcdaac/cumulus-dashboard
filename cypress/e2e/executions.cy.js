@@ -274,10 +274,10 @@ describe('Dashboard Executions Page', () => {
       cy.get('@events').should('have.length', 7);
 
       cy.get('.search').as('search');
-      cy.get('@search').click().type('task');
+      cy.get('@search').click().type('task{enter}');
       cy.url().should('include', 'search=task');
       cy.get('@events').should('have.length', 2);
-      cy.get('@search').clear();
+      cy.get('@search').clear().type('{enter}');
       cy.url().should('not.include', 'search');
       cy.get('@events').should('have.length', 7);
 
@@ -448,7 +448,7 @@ describe('Dashboard Executions Page', () => {
     it('Should search by unarchived or both as toggled', () => {
       const infixboth = '1aa3fbaa';
       const infixArchived = '1aa3fbaab';
-      const infixNotArchived = '1aa3fbaa';
+      const infixNotArchived = '1aa3fbaaaf01';
 
       cy.visit('/executions');
       cy.get('#chk_isArchivedSearch').should('not.be.checked');

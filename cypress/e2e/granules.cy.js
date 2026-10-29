@@ -312,7 +312,7 @@ describe('Dashboard Granules Page', () => {
       const prefix = 'test_';
       cy.visit('/granules');
       cy.get('.search').as('search');
-      cy.get('@search').click().type(prefix);
+      cy.get('@search').click().type(prefix).type('{enter}');
       cy.url().should('include', `search=${prefix}`);
       cy.get('.table .tbody .tr').should('have.length', 1);
       cy.get('.table .tbody .tr').eq(0).children('.td').eq(2)
@@ -377,7 +377,8 @@ describe('Dashboard Granules Page', () => {
     it('Should show Search and Dropdown filters in URL.', () => {
       cy.visit('/granules');
       cy.get('.search').as('search');
-      cy.get('@search').should('be.visible').click({ force: true }).type('L2');
+      cy.get('@search').should('be.visible').click({ force: true }).type('L2{enter}');
+      cy.url().should('include', 'search=L2');
       cy.get('.filter-status .rbt-input-main').as('status-input');
       cy.get('@status-input').should('be.visible').click({ force: true }).type('comp{enter}');
       cy.url().should('include', 'search=L2').and('include', 'status=completed');
@@ -387,7 +388,7 @@ describe('Dashboard Granules Page', () => {
       cy.visit('/granules');
       cy.setDatepickerDropdown('Recent');
       cy.get('.search').as('search');
-      cy.get('@search').should('be.visible').click({ force: true }).type('L2');
+      cy.get('@search').should('be.visible').click({ force: true }).type('L2{enter}');
       cy.get('.filter-status .rbt-input-main').as('status-input');
       cy.get('@status-input').should('be.visible').click({ force: true }).type('comp{enter}');
       cy.contains('.sidebar__row ul li a', 'Running').should('have.attr', 'href').and('match', /startDateTime/).and('not.match', /search|status/);
@@ -1004,6 +1005,39 @@ describe('Dashboard Granules Page', () => {
         .and('include', `collectionId=${encodeURIComponent(collectionId)}`)
         .and('include', `search=${searchShort}`);
     });
+
+    it('Should allow user to select execute workflow option from dropdown when from granule detail page', () => {
+      const granuleId = 'test_12345678_123456_metopa_12345_eps_o_coa_1234_ovwcl2';
+      const workflowNameTest = 'SecondTestWorkflow';
+      cy.intercept('GET', `/granules/${granuleId}*`).as('getGranule');
+      cy.intercept('PATCH', /\/granules\/.*/).as('executeWorkflow');
+
+      cy.visit('/granules');
+      cy.wait(1000);
+      cy.contains('.table .tbody .tr a', granuleId).then(($res) => {
+        expect($res).to.have.attr('href', `/granules/granule/${granuleId}`);
+        cy.wrap($res).click();
+      });
+      cy.wait('@getGranule');
+      cy.get('.heading--large').should('have.text', `Granule: ${granuleId}`);
+      cy.contains('button', 'Options').click();
+      cy.get('.dropdown__menu').contains('Execute').click();
+      cy.get('.modal-body .form__dropdown .dropdown__element input').as('workflow-input');
+      cy.get('@workflow-input').click({ force: true });
+      cy.get('.modal-body .form__dropdown .dropdown__element .react-select__menu').as('workflow-menu');
+      cy.get('@workflow-menu').should('be.visible');
+      cy.get('@workflow-menu').get('.react-select__option').each(($option) => {
+        if ($option.text() === workflowNameTest) {
+          cy.wrap($option).click();
+        }
+      });
+      cy.get('.modal-body .form__dropdown .dropdown__element .react-select__single-value').should('have.text', workflowNameTest);
+      cy.get('.button--submit').click();
+      cy.wait('@executeWorkflow').then(({ request }) => {
+        expect(request.body.action).to.equal('applyWorkflow');
+        expect(request.body.workflow).to.equal(workflowNameTest);
+      });
+    });
   });
 
   describe('when ESTIMATE_TABLE_ROW_COUNT is false', () => {
@@ -1023,6 +1057,167 @@ describe('Dashboard Granules Page', () => {
       cy.get('.num-title').invoke('text').then((granuleCount) => {
         cy.get('.tbody .tr').should('have.length', Number(granuleCount));
       });
+    });
+  });
+
+  describe('Search button functionality', () => {
+    beforeEach(() => {
+      cy.login();
+      cy.visit('/granules');
+      cy.get('.search').as('search');
+      cy.get('button.button--search').as('searchButton');
+    });
+
+    it('Should execute search when clicking the search button', () => {
+      const searchTerm = 'MOD09GQ';
+
+      cy.get('@search').click().type(searchTerm);
+      cy.get('@searchButton').click();
+
+      cy.url().should('include', `search=${searchTerm}`);
+      cy.get('.table .tbody .tr').should('have.length.at.least', 1);
+      cy.get('.table .tbody .tr').first().should('contain', searchTerm);
+    });
+
+    it('Should show validation error for search terms that are too short', () => {
+      cy.get('@search').click().type('M');
+      cy.get('@searchButton').click();
+
+      cy.get('.search__error').should('be.visible');
+      cy.get('.search__error').should('contain', 'Please enter at least 2 characters');
+      cy.url().should('not.include', 'search=M');
+    });
+
+    it('Should show validation error for repeated characters', () => {
+      cy.get('@search').click().type('AAA');
+      cy.get('@searchButton').click();
+
+      cy.get('.search__error').should('be.visible');
+      cy.get('.search__error').should('contain', 'more specific search term');
+      cy.url().should('not.include', 'search=AAA');
+    });
+
+    it('Should clear validation error when typing after error', () => {
+      // Trigger validation error
+      cy.get('@search').click().type('M');
+      cy.get('@searchButton').click();
+      cy.get('.search__error').should('be.visible');
+
+      // Start typing again - error should clear
+      cy.get('@search').click().type('O');
+      cy.get('.search__error').should('not.exist');
+    });
+
+    it('Should execute search with Enter key', () => {
+      const searchTerm = 'MOD09GQ';
+
+      cy.get('@search').click().type(searchTerm).type('{enter}');
+
+      cy.url().should('include', `search=${searchTerm}`);
+      cy.get('.table .tbody .tr').should('have.length.at.least', 1);
+    });
+
+    it('Should work with autocomplete dropdown selection', () => {
+      const searchTerm = 'MOD';
+
+      cy.get('@search').click().type(searchTerm);
+      cy.wait(500); // Wait for dropdown
+
+      // Click first autocomplete option
+      cy.get('.rbt-menu .dropdown-item').first().click();
+
+      cy.url().should('include', 'search=');
+      cy.get('.table .tbody .tr').should('have.length.at.least', 1);
+    });
+
+    it('Should clear search when clicking search with empty input', () => {
+      cy.get('@search').click().type('MOD09GQ');
+      cy.get('@searchButton').click();
+      cy.url().should('include', 'search=MOD09GQ');
+
+      // Clear the input
+      cy.get('@search').click().clear();
+      cy.get('@searchButton').click();
+
+      cy.url().should('not.include', 'search=');
+      cy.get('.table .tbody .tr').should('have.length', 15); // All granules
+    });
+
+    it('Should work with infix search toggle', () => {
+      const infix = 'A153';
+
+      cy.get('#chk_isInfixSearch').check({ force: true });
+      cy.get('@search').click().type(infix);
+      cy.get('@searchButton').click();
+
+      cy.url().should('include', `search=${infix}`);
+      cy.get('.table .tbody .tr').should('have.length.at.least', 1);
+      cy.get('.table .tbody .tr').first().should('contain', infix);
+    });
+
+    it('Should preserve other filters when searching', () => {
+      // Set a status filter
+      cy.get('.filter-status .rbt-input-main').click().type('comp').type('{enter}');
+      cy.url().should('include', 'status=completed');
+
+      // Search
+      cy.get('@search').click().type('MOD09GQ');
+      cy.get('@searchButton').click();
+
+      // Both params should be in URL
+      cy.url().should('include', 'status=completed');
+      cy.url().should('include', 'search=MOD09GQ');
+    });
+
+    it('Should show helpful tip message when no validation error', () => {
+      cy.get('.search__tip').should('be.visible');
+      cy.get('.search__tip').should('contain', 'Use specific terms');
+
+      // Tip should disappear when validation error shows
+      cy.get('@search').click().type('M');
+      cy.get('@searchButton').click();
+      cy.get('.search__tip').should('not.exist');
+      cy.get('.search__error').should('be.visible');
+    });
+
+    it('Should have error and error type columns available to toggle and display correctly', () => {
+      cy.visit('/granules');
+      cy.contains('.table__filters .button__filter', 'Show/Hide Columns').click();
+      cy.get('.table__filters--collapse').should('be.visible');
+
+      cy.contains('.table__filters--filter label', /^Error Type$/).find('span').click();
+      cy.contains('.table__filters--filter label', /^Error$/).find('span').click();
+
+      cy.get('.button__apply-filter').click();
+
+      const noErrorGranuleID = 'MOD09GQ.A8022119.sk3Sph.006.0494433853533';
+      const errorGranuleID = 'MOD09GQ.A2417309.YZ9tCV.006.4640974889044_ca2a8dfe';
+      const unknownErrorGranuleID = 'coastal_12345678_123456_metopa_12345_eps_o_coa_1234_ovwcl3';
+      cy.get(`[data-value="${noErrorGranuleID}"]`).children().as('noErrorColumns');
+      cy.get('@noErrorColumns').eq(4).invoke('text').should('be.eq', '--');
+      cy.get('@noErrorColumns').eq(5).invoke('text').should('be.eq', '--');
+      cy.get(`[data-value="${errorGranuleID}"]`).children().as('errorColumns');
+      cy.get('@errorColumns').eq(4).invoke('text').should('be.eq', 'UnexpectedFileSize');
+      cy.get('@errorColumns').eq(5).invoke('text').should('match', /errorMessage/);
+      cy.get(`[data-value="${unknownErrorGranuleID}"]`).children().as('unknownErrorColumns');
+      cy.get('@unknownErrorColumns').eq(4).invoke('text').should('be.eq', '--');
+      cy.get('@unknownErrorColumns').eq(5).invoke('text').should('be.eq', '--');
+    });
+
+    it('Should display error if available in granule overview page', () => {
+      const noErrorGranuleID = 'MOD09GQ.A8022119.sk3Sph.006.0494433853533';
+      const errorGranuleID = 'MOD09GQ.A2417309.YZ9tCV.006.4640974889044_ca2a8dfe';
+      const unknownErrorGranuleID = 'coastal_12345678_123456_metopa_12345_eps_o_coa_1234_ovwcl3';
+      cy.visit(`/granules/granule/${errorGranuleID}`);
+      cy.get('.heading--large').should('have.text', `Granule: ${errorGranuleID}`);
+      cy.get('.error__report').should('be.visible');
+      cy.get('.error__report').should('contain.text', 'errorMessage');
+      cy.visit(`/granules/granule/${noErrorGranuleID}`);
+      cy.get('.heading--large').should('have.text', `Granule: ${noErrorGranuleID}`);
+      cy.get('.error__report').should('not.exist');
+      cy.visit(`/granules/granule/${unknownErrorGranuleID}`);
+      cy.get('.heading--large').should('have.text', `Granule: ${unknownErrorGranuleID}`);
+      cy.get('.error__report').should('not.exist');
     });
   });
 });
