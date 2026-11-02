@@ -87,12 +87,38 @@ describe('Dashboard Collections Page', () => {
       cy.get('@listItems').contains('.td', /[0-9]{2}:[0-9]{2}:[0-9]{2}.+/);
     });
 
+    it('should only filter by date when the date filter checkbox is checked', () => {
+      cy.contains('nav li a', 'Collections').as('collections');
+      cy.clock(-2208988800); // set date to 01/01/1900
+      cy.setDatepickerDropdown('Recent');
+      cy.get('@collections').should('have.attr', 'href').and('match', /\/collections.*startDateTime/);
+      cy.get('@collections').click();
+      cy.get('input[type="checkbox"]').uncheck({ force: true });
+
+      cy.url().should('include', 'collections');
+      cy.contains('.heading--xlarge', 'Collections');
+
+      cy.get('.table .tbody .tr').as('listItems');
+
+      cy.get('@listItems').each(($row) => {
+        // verify granule column does not equal 0
+        cy.wrap($row).find('.td').eq(3).should('not.eq', '0');
+      });
+
+      cy.get('@listItems').find('.td a').eq(0).click();
+      cy.wait('@getGranules');
+
+      // verify there is a granule with a timestamp containing second or minute
+      // this would indicate it was updated within the default timeframe of 1 hour
+      cy.get('@listItems').contains('.td', /[0-9]{2}:[0-9]{2}:[0-9]{2}.+/);
+    });
+
     it('should search collections by name', () => {
       const infix = 'https';
       cy.visit('/collections');
       cy.wait('@getCollections');
       cy.get('.search').as('search');
-      cy.get('@search').click().type(infix);
+      cy.get('@search').click().type(infix).type('{enter}');
       cy.url().should('include', `search=${infix}`);
       cy.get('.table .tbody .tr').should('have.length', 1);
       cy.get('.table .tbody .tr').eq(0).children('.td').eq(1)
@@ -734,7 +760,7 @@ describe('Dashboard Collections Page', () => {
 
     it('should dynamically update menu, sidebar and breadcrumb links with latest filter criteria', () => {
       const providerString = 's3_provider';
-      const searchString = 'Test-L2%2FCoastal';
+      const searchString = 'Test';
       cy.visit('/collections/all');
       cy.wait('@getCollections');
 
@@ -745,7 +771,7 @@ describe('Dashboard Collections Page', () => {
       cy.get('@search').click().type('Test');
       cy.wait(1000);
       cy.get('@search').type('{enter}');
-      cy.get('span > a', { timeout: 10000 }).click();
+      cy.get('span > a', { timeout: 10000 }).first().click();
 
       // Breakcrumb <Link> contain correct query params
       cy.get('.breadcrumb > :nth-child(2) > a')
